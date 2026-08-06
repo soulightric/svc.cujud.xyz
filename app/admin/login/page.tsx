@@ -71,7 +71,7 @@ export default function LoginPage() {
       <div className="relative w-full max-w-sm">
         {/* Card */}
         <div
-          className="rounded overflow-hidden shadow-2xl"
+          className="rounded-2xl overflow-hidden shadow-2xl"
           style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           {/* Header */}
@@ -93,7 +93,7 @@ export default function LoginPage() {
                 }}
               />
             </div>
-            <h1 className="serif text-2xl text-white mb-1">Admin Panel</h1>
+            <h1 className="text-2xl text-white mb-1 font-semibold tracking-tight">Admin Panel</h1>
             <p className="text-slate-400 text-xs">
               SVC — Akses Terbatas
             </p>

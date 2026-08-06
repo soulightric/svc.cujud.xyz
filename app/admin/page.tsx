@@ -3,24 +3,28 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import NavLink from "@/app/components/NavLink";
+import CommentThread from "@/app/components/CommentThread";
+import ThemeToggle from "@/app/components/ThemeToggle";
 import {
   BookOpen, GraduationCap, Wifi, Utensils, Building2, ShieldCheck,
   FlaskConical, Bus, CheckCircle2, Clock3, XCircle, MessageSquare,
   Hash, CalendarDays, RefreshCw, AlertCircle, ChevronLeft,
   Send, Inbox, Users, TrendingUp, ShieldAlert, X, Trash2, LogOut, LayoutDashboard,
   UserPlus, Eye, EyeOff, KeyRound, Menu, Search, ImageIcon,
+  Download, FileUp,
 } from "lucide-react";
 
 type StatusType = "menunggu" | "diterima" | "ditolak" | "selesai";
 type TabType = "aduan" | "mahasiswa" | "admin";
 
 interface Feedback {
-  id: string; kategori: string; judul: string; deskripsi: string;
+  id: string; nomorTiket?: string; kategori: string; judul: string; deskripsi: string;
   status: StatusType; createdAt: string; balasan?: string | null;
   mahasiswa: { nama: string; nim: string };
   lampiran?: string | null;
   lampiranBalasan?: string | null;
   diteruskan?: boolean; diteruskanAt?: string | null;
+  _count?: { comments?: number };
 }
 interface MeInfo {
   username: string | null;
@@ -154,7 +158,7 @@ function DetailPanel({ fb, onClose, onUpdate, isSuper = false, onForward }: {
             {[
               { label: "Nama",    value: fb.mahasiswa.nama },
               { label: "NIM",     value: fb.mahasiswa.nim },
-              { label: "ID",      value: fb.id.slice(0,8).toUpperCase() },
+              { label: "Tiket",   value: fb.nomorTiket || fb.id.slice(0,8).toUpperCase() },
               { label: "Tanggal", value: formatTanggal(fb.createdAt) },
             ].map(({ label, value }) => (
               <div key={label} className="bg-slate-50 rounded p-3">
@@ -299,6 +303,10 @@ function DetailPanel({ fb, onClose, onUpdate, isSuper = false, onForward }: {
             {fileErr && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={11} />{fileErr}</p>}
           </div>
 
+          <div className="pt-3 border-t border-slate-100">
+            <CommentThread feedbackId={fb.id} canReply={true} />
+          </div>
+
           <button onClick={handleSave} disabled={saving || uploading}
             className="w-full flex items-center justify-center gap-2 py-3 rounded font-semibold text-sm transition-all hover:opacity-90 disabled:opacity-60"
             style={{ backgroundColor: saved ? "#10b981" : "#0f1b2d", color: "white" }}>
@@ -323,6 +331,9 @@ function MahasiswaTab() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [resetTarget, setResetTarget] = useState<Mahasiswa | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState("");
+  const importRef = useRef<HTMLInputElement>(null);
 
   const fetchList = useCallback(async () => {
     try {
@@ -370,6 +381,33 @@ function MahasiswaTab() {
     setNewPassword("");
   };
 
+  const handleImportCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult("");
+    try {
+      const textCsv = await file.text();
+      const res = await fetch("/api/mahasiswa/import", {
+        method: "POST",
+        headers: { "Content-Type": "text/csv" },
+        body: textCsv,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setImportResult(data.error || "Import gagal");
+      } else {
+        setImportResult(`Berhasil: ${data.created} dibuat, ${data.skipped} dilewati dari ${data.total} baris.`);
+        await fetchList();
+      }
+    } catch {
+      setImportResult("Gagal membaca/mengirim file");
+    } finally {
+      setImporting(false);
+      if (importRef.current) importRef.current.value = "";
+    }
+  };
+
   return (
     <div>
       {/* Header */}
@@ -380,17 +418,32 @@ function MahasiswaTab() {
             {list.length} Mahasiswa Terdaftar
           </p>
         </div>
-        <button onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-semibold transition-all"
-          style={{ backgroundColor: showForm ? "#f1f5f9" : "#0f1b2d", color: showForm ? "#64748b" : "white" }}>
-          <UserPlus size={13} />{showForm ? "Batal" : "Tambah Mahasiswa"}
-        </button>
+        <div className="flex items-center gap-2">
+          <input ref={importRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleImportCsv} />
+          <button type="button" onClick={() => importRef.current?.click()} disabled={importing}
+            className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+            {importing ? <RefreshCw size={13} className="animate-spin" /> : <FileUp size={13} />}
+            Import CSV
+          </button>
+          <button onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-semibold transition-all"
+            style={{ backgroundColor: showForm ? "#f1f5f9" : "#0f1b2d", color: showForm ? "#64748b" : "white" }}>
+            <UserPlus size={13} />{showForm ? "Batal" : "Tambah Mahasiswa"}
+          </button>
+        </div>
       </div>
+
+      {importResult && (
+        <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-700">
+          {importResult}
+          <p className="text-[10px] text-slate-400 mt-1">Format CSV: nim,nama,password,email (password &amp; email opsional; default password Mahasiswa123)</p>
+        </div>
+      )}
 
       {/* Form tambah */}
       {showForm && (
         <div className="bg-white rounded border border-slate-100 p-5 mb-4 animate-fade-up">
-          <h3 className="serif text-base text-slate-800 mb-4">Tambah Mahasiswa Baru</h3>
+          <h3 className="text-base text-slate-800 mb-4">Tambah Mahasiswa Baru</h3>
           <form onSubmit={handleAdd} className="space-y-3">
             {error && (
               <div className="flex items-center gap-2 px-3 py-2 rounded text-xs"
@@ -510,7 +563,7 @@ function MahasiswaTab() {
             <div className="w-12 h-12 rounded flex items-center justify-center mb-4 mx-auto" style={{ backgroundColor: "#fee2e2" }}>
               <Trash2 size={22} className="text-red-500" />
             </div>
-            <h3 className="serif text-lg text-slate-800 text-center mb-2">Hapus Mahasiswa?</h3>
+            <h3 className="text-lg text-slate-800 text-center mb-2">Hapus Mahasiswa?</h3>
             <p className="text-sm text-slate-500 text-center mb-6">Semua data aduan mahasiswa ini juga akan ikut terhapus.</p>
             <div className="flex gap-3">
               <button onClick={() => setDeleteConfirm(null)}
@@ -531,7 +584,7 @@ function MahasiswaTab() {
             <div className="w-12 h-12 rounded flex items-center justify-center mb-4 mx-auto" style={{ backgroundColor: "#dbeafe" }}>
               <KeyRound size={22} className="text-blue-500" />
             </div>
-            <h3 className="serif text-lg text-slate-800 text-center mb-1">Reset Password</h3>
+            <h3 className="text-lg text-slate-800 text-center mb-1">Reset Password</h3>
             <p className="text-xs text-slate-400 text-center mb-4">{resetTarget.nama} ({resetTarget.nim})</p>
             <input type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Password baru"
@@ -601,9 +654,10 @@ export default function AdminPage() {
     try {
       setLoading(true);
       setError("");
-      const res = await fetch("/api/feedback");
+      const res = await fetch("/api/feedback?limit=100");
       if (!res.ok) throw new Error();
-      setFeedbacks(await res.json());
+      const json = await res.json();
+      setFeedbacks(Array.isArray(json) ? json : (json.data ?? []));
     } catch { setError("Gagal memuat data."); }
     finally { setLoading(false); }
   }, []);
@@ -660,7 +714,7 @@ export default function AdminPage() {
               <div className="w-7 h-7 rounded flex items-center justify-center" style={{ backgroundColor: myKat ? myKat.color : "#0d9488" }}>
                 <ShieldAlert size={15} className="text-white" />
               </div>
-              <span className="text-white font-semibold text-sm serif">
+              <span className="text-white font-semibold text-sm">
                 {isSuper ? "Admin Panel · Penerus" : myKat ? `Admin ${myKat.label}` : "Admin Panel"}
               </span>
             </div>
@@ -684,6 +738,10 @@ export default function AdminPage() {
               style={{ border: "1px solid rgba(255,255,255,0.1)" }}>
               <RefreshCw size={12} className={loading ? "animate-spin" : ""} />Refresh
             </button>
+              <a href="/api/export" className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-teal-400 hover:bg-white/5 transition-all">
+                <Download size={12} />Export CSV
+              </a>
+              <ThemeToggle className="hidden md:inline-flex" />
             <button onClick={handleLogout}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:bg-red-500 text-white transition-colors"
               style={{ border: "1px solid rgba(255, 255, 255,0.1)"  }}>
@@ -743,7 +801,7 @@ export default function AdminPage() {
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{ color }}>{label}</p>
                 <Icon size={16} style={{ color }} />
               </div>
-              <p className="text-3xl font-bold serif" style={{ color }}>{value}</p>
+              <p className="text-3xl font-semibold tracking-tight" style={{ color }}>{value}</p>
               {stats.total > 0 && (
                 <div className="mt-2 h-1 rounded bg-black/5 overflow-hidden">
                   <div className="h-full rounded" style={{ width: `${(value / stats.total) * 100}%`, backgroundColor: color }} />
@@ -877,6 +935,7 @@ export default function AdminPage() {
                         </span>
                         <div className="col-span-3 min-w-0">
                           <p className="text-sm font-semibold text-slate-800 truncate group-hover:text-teal-700 transition-colors">{fb.judul}</p>
+                          {fb.nomorTiket && <p className="text-[10px] font-mono text-blue-600">{fb.nomorTiket}</p>}
                           <p className="text-xs text-slate-400 truncate">{fb.deskripsi.slice(0,45)}...</p>
                         </div>
                         <div className="col-span-2 min-w-0">
@@ -934,7 +993,7 @@ export default function AdminPage() {
             <div className="w-12 h-12 rounded flex items-center justify-center mb-4 mx-auto" style={{ backgroundColor: "#fee2e2" }}>
               <Trash2 size={22} className="text-red-500" />
             </div>
-            <h3 className="serif text-lg text-slate-800 text-center mb-2">Hapus Aduan?</h3>
+            <h3 className="text-lg text-slate-800 text-center mb-2">Hapus Aduan?</h3>
             <p className="text-sm text-slate-500 text-center mb-6">Tindakan ini tidak dapat dibatalkan.</p>
             <div className="flex gap-3">
               <button onClick={() => setDeleteConfirm(null)}

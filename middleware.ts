@@ -11,8 +11,12 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/admin")) {
     const token = req.cookies.get("admin_token")?.value;
     if (!token) return NextResponse.redirect(new URL("/admin/login", req.url));
+
     const payload = await verifyToken(token);
-    if (!payload) {
+    if (
+      !payload ||
+      (payload.role !== "SUPER_ADMIN" && payload.role !== "ADMIN")
+    ) {
       const res = NextResponse.redirect(new URL("/admin/login", req.url));
       res.cookies.delete("admin_token");
       return res;
@@ -25,8 +29,9 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/feedback")) {
     const token = req.cookies.get("mahasiswa_token")?.value;
     if (!token) return NextResponse.redirect(new URL("/login", req.url));
+
     const payload = await verifyToken(token);
-    if (!payload) {
+    if (!payload || payload.role !== "mahasiswa") {
       const res = NextResponse.redirect(new URL("/login", req.url));
       res.cookies.delete("mahasiswa_token");
       return res;

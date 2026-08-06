@@ -275,3 +275,33 @@ Vercel tidak otomatis migrate database.
 ## Lisensi
 
 Project ini dibuat untuk keperluan akademik.
+
+---
+
+## Keamanan (setelah audit)
+
+Perubahan kritis yang sudah diterapkan:
+
+1. **Password di-hash** dengan bcrypt (`lib/hash.ts`) pada create/login/reset admin & mahasiswa.
+2. **API `/api/mahasiswa`** dilindungi — hanya admin terautentikasi.
+3. **`GET /api/feedback`** filter di server: mahasiswa hanya data sendiri; admin sesuai role/kategori. Response berpaginasi `{ data, pagination }`.
+4. **TLS reject unauthorized** hanya aktif di `NODE_ENV=development`.
+5. **Tidak ada kredensial admin hardcoded** di login — seed database wajib.
+6. **`JWT_SECRET`** divalidasi (minimal 32 karakter) saat sign/verify.
+7. **Middleware** memvalidasi `payload.role` (admin vs mahasiswa).
+8. **Rate limiting** 10 percobaan / 15 menit per IP pada endpoint login.
+9. Index Prisma pada status, kategori, mahasiswaId, dll.
+10. `.env.example`, error/not-found/loading pages, `remotePatterns` Cloudinary.
+
+### Setelah deploy / clone baru
+
+```bash
+cp .env.example .env
+# isi JWT_SECRET, DATABASE_URL, CLOUDINARY_*, SEED_ADMIN_PASSWORD
+
+npx prisma db push   # atau prisma migrate deploy
+npm run seed         # buat admin (password sudah di-hash)
+# Jika sudah ada data plain-text lama:
+npm run hash-passwords
+```
+

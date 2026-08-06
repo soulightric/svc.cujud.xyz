@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import {
   MessageSquare, CheckCircle2, Clock3, XCircle,
   TrendingUp, ArrowRight, ShieldAlert, LogIn, Users, CheckCheck,
-  Menu, X
+  Menu, X, Ticket, Search
 } from "lucide-react";
 import Image from "next/image";
 import Link from 'next/link';
+import ThemeToggle from "@/app/components/ThemeToggle";
 import { BUILD_MANIFEST } from "next/dist/shared/lib/constants";
 
 interface Stats {
@@ -38,6 +39,7 @@ export default function HomePage() {
 
   // Daftar link navigasi
   const navLinks = [
+    { label: "Lacak Aduan", href: "/lacak", blank: false },
     { label: "Web Utama", href: "https://ith.ac.id", blank: true },
     { label: "Easter Egg", href: "https://oguri.ilkomith.cloud", blank: true },
   ];
@@ -138,7 +140,7 @@ export default function HomePage() {
               </div>
             <div>
               <p className="text-[10px] font-medium text-teal-400 uppercase tracking-widest">Portal Resmi</p>
-              <h1 className="text-white font-bold text-base leading-none serif">SVC</h1>
+              <h1 className="text-white font-semibold text-base leading-none tracking-tight">SVC</h1>
             </div>
           </div>
 
@@ -154,6 +156,7 @@ export default function HomePage() {
                 {link.label}
               </a>
             ))}
+            <ThemeToggle />
             <Link
               href="/login"
               className="inline-flex items-center gap-2 px-4 py-2 rounded font-semibold text-sm transition-all hover:opacity-90"
@@ -231,7 +234,7 @@ export default function HomePage() {
               Sistem Aktif — Aduan Diproses 3–5 Hari Kerja
             </div>
 
-            <h2 className="serif text-4xl md:text-5xl font-bold text-white leading-tight mb-4">
+            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-white leading-tight mb-4">
               Suara Mahasiswa,<br />
               <span style={{ color: "#fcd34d" }}>Kampus Lebih Baik</span>
             </h2>
@@ -256,7 +259,7 @@ export default function HomePage() {
                   style={{ backgroundColor: color + "20" }}>
                   <Icon size={18} style={{ color }} />
                 </div>
-                <p className="text-3xl font-bold serif mb-1" style={{ color }}>
+                <p className="text-3xl font-semibold tracking-tight mb-1" style={{ color }}>
                   {loading ? "—" : value}
                 </p>
                 <p className="text-xs font-medium" style={{ color: color + "99" }}>{label}</p>
@@ -268,7 +271,7 @@ export default function HomePage() {
         {/* ── How it works ── */}
         <section className="max-w-5xl mx-auto px-6 mb-16">
           <div className="text-center mb-8">
-            <h3 className="serif text-2xl text-slate-800 mb-2">Cara Kerja</h3>
+            <h3 className="text-2xl font-semibold tracking-tight text-slate-800 mb-2">Cara Kerja</h3>
             <p className="text-sm text-slate-400">Tiga langkah mudah untuk menyampaikan aduan</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -278,7 +281,7 @@ export default function HomePage() {
               { step: "03", title: "Pantau Status",desc: "Lihat status aduan Anda: menunggu, diterima, atau ditolak beserta balasan resmi.",    color: "#f59e0b" },
             ].map(({ step, title, desc, color }) => (
               <div key={step} className="bg-white rounded p-6 border border-slate-100 shadow-sm">
-                <div className="w-10 h-10 rounded flex items-center justify-center mb-4 serif text-lg font-bold"
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-lg font-semibold"
                   style={{ backgroundColor: color + "15", color }}>
                   {step}
                 </div>
@@ -298,13 +301,19 @@ export default function HomePage() {
             }} />
             <div className="relative">
               <Users size={32} className="text-teal-400 mx-auto mb-4" />
-              <h3 className="serif text-2xl text-white mb-2">Siap Menyampaikan Aduan?</h3>
+              <h3 className="text-2xl font-semibold tracking-tight text-white mb-2">Siap Menyampaikan Aduan?</h3>
               <p className="text-slate-400 text-sm mb-6">Login sekarang dan bantu kami tingkatkan kualitas fasilitas kampus</p>
-              <Link href="/login"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded font-semibold text-sm transition-all hover:opacity-90"
-                style={{ backgroundColor: "#0d9488", color: "white" }}>
-                <LogIn size={15} />Masuk Sekarang
-              </Link>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Link href="/login"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded font-semibold text-sm transition-all hover:opacity-90"
+                  style={{ backgroundColor: "#0d9488", color: "white" }}>
+                  <LogIn size={15} />Masuk Sekarang
+                </Link>
+                <Link href="/lacak"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded font-semibold text-sm transition-all border border-slate-600 text-slate-200 hover:bg-white/5">
+                  <Search size={15} />Lacak Aduan
+                </Link>
+              </div>
             </div>
           </div>
         </section>
@@ -313,7 +322,7 @@ export default function HomePage() {
       {/* ── Footer ── */}
       <footer className="border-t border-slate-200">
         <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-slate-400">© 2026 SVC - Student Voice Campus backup by <Link className="text-emerald-500" href="https://www.etherthink.xyz/" target="_blank" rel="noopener noreferrer">Etherthink</ Link></p>
+          <p className="text-xs text-slate-400">© 2026 SVC - Student Voice Campus backup by <Link className="text-emerald-500" href="https://www.etherthink.xyz/" target="_blank" rel="noopener noreferrer">Etherthink</Link></p>
           <p className="text-xs text-slate-400">Aduan bersifat rahasia dan diproses dalam 3–5 hari kerja</p>
         </div>
       </footer>

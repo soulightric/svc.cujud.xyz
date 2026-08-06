@@ -11,17 +11,20 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import NotificationBell from "@/app/components/NotificationBell";
+import CommentThread from "@/app/components/CommentThread";
+import ThemeToggle from "@/app/components/ThemeToggle";
 import Link from 'next/link';
 
 type StatusType = "menunggu" | "diterima" | "ditolak" | "selesai";
 
 interface Mahasiswa { nama: string; nim: string; }
 interface Feedback {
-  id: string; kategori: string; judul: string; deskripsi: string;
+  id: string; nomorTiket?: string; kategori: string; judul: string; deskripsi: string;
   status: StatusType; createdAt: string; balasan?: string | null;
   mahasiswa: Mahasiswa; mahasiswaId: string;
   lampiran?: string | null;
   lampiranBalasan?: string | null;
+  _count?: { comments?: number };
 }
 
 const KATEGORI_LIST = [
@@ -95,7 +98,7 @@ function EditModal({ fb, onClose, onSave }: {
       <div className="bg-white rounded shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-up">
         <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between rounded">
           <div>
-            <h3 className="font-semibold text-slate-800 serif text-lg">Edit Aduan</h3>
+            <h3 className="font-semibold text-slate-800 text-lg">Edit Aduan</h3>
             <p className="text-xs text-slate-400 mt-0.5">Hanya aduan berstatus Menunggu yang bisa diedit</p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded hover:bg-slate-100 transition-colors">
@@ -183,6 +186,9 @@ function FeedbackCard({ fb, delay, currentUserId, onEdit, onDelete }: {
             <div className="min-w-0">
               <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">{kat.label}</p>
               <h3 className="font-semibold text-slate-800 text-sm leading-tight truncate">{fb.judul}</h3>
+              {fb.nomorTiket && (
+                <p className="text-[11px] font-mono text-blue-600 mt-0.5">{fb.nomorTiket}</p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -271,6 +277,9 @@ function FeedbackCard({ fb, delay, currentUserId, onEdit, onDelete }: {
                   onClick={() => window.open(fb.lampiranBalasan!, "_blank")} />
               </div>
             )}
+            <div className="pt-2 border-t border-slate-100">
+              <CommentThread feedbackId={fb.id} canReply={isOwner && fb.status !== "ditolak"} />
+            </div>
             {canEdit && (
               <p className="text-[11px] text-slate-400 flex items-center gap-1">
                 <Pencil size={10} />Aduan masih bisa diedit atau dihapus selama berstatus Menunggu
@@ -354,7 +363,7 @@ function FeedbackForm({ onSubmit }: { onSubmit: (data: { kategori: string; judul
     <div className="flex flex-col items-center justify-center py-16 animate-fade-up">
       <div className="w-16 h-16 rounded flex items-center justify-center mb-4" style={{ backgroundColor: "#d1fae5" }}>
         <CheckCircle2 size={32} className="text-emerald-600" /></div>
-      <h3 className="serif text-xl text-slate-800 mb-2">Aduan Terkirim!</h3>
+      <h3 className="text-xl text-slate-800 mb-2">Aduan Terkirim!</h3>
       <p className="text-sm text-slate-500 text-center">Laporan Anda sedang diproses. Pantau statusnya di bawah.</p>
     </div>
   );
@@ -480,9 +489,10 @@ export default function FeedbackPage() {
   const fetchFeedbacks = useCallback(async () => {
     try {
       setError("");
-      const res = await fetch("/api/feedback");
+      const res = await fetch("/api/feedback?limit=100");
       if (!res.ok) throw new Error();
-      setFeedbacks(await res.json());
+      const json = await res.json();
+      setFeedbacks(Array.isArray(json) ? json : (json.data ?? []));
     } catch { setError("Tidak dapat terhubung ke database."); }
     finally { setLoading(false); }
   }, []);
@@ -555,7 +565,7 @@ export default function FeedbackPage() {
               </div>
               <div>
                 <p className="text-[10px] font-medium text-teal-400 uppercase tracking-widest">Portal Resmi</p>
-                <h1 className="text-white font-bold text-base leading-none serif">SVC</h1>
+                <h1 className="text-white font-semibold text-base leading-none tracking-tight">SVC</h1>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -569,7 +579,8 @@ export default function FeedbackPage() {
                   <span className="text-xs text-slate-500">({user.nim})</span>
                 </div>
               )}
-              <NotificationBell />
+              <ThemeToggle className="text-slate-500" />
+            <NotificationBell />
               <button onClick={handleLogout}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all hover:opacity-80"
                 style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#fca5a5", border: "1px solid rgba(239,68,68,0.3)" }}>
@@ -579,7 +590,7 @@ export default function FeedbackPage() {
           </div>
 
           <div className="max-w-2xl">
-            <h2 className="serif text-2xl md:text-3xl font-normal text-white leading-tight mb-2">
+            <h2 className="text-2xl md:text-3xl font-normal text-white leading-tight mb-2">
               Student Voice <span style={{ color: "#fcd34d" }}>ITH Campus</span>
             </h2>
             <p className="text-slate-400 text-xs leading-relaxed">
@@ -612,7 +623,7 @@ export default function FeedbackPage() {
             <div className="sticky top-6">
               <div className="bg-white rounded border border-slate-100 shadow-sm overflow-hidden">
                 <div className="px-5 py-4 border-b border-slate-100" style={{ backgroundColor: "#f8f7f4" }}>
-                  <h2 className="serif text-xl text-slate-800">Buat Aduan Baru</h2>
+                  <h2 className="text-xl text-slate-800">Buat Aduan Baru</h2>
                   <p className="text-xs text-slate-400 mt-0.5">Isi form di bawah dengan lengkap dan jujur</p>
                 </div>
                 <div className="p-5"><FeedbackForm onSubmit={handleNewFeedback} /></div>
@@ -792,7 +803,7 @@ export default function FeedbackPage() {
             <div className="w-12 h-12 rounded flex items-center justify-center mb-4 mx-auto" style={{ backgroundColor: "#fee2e2" }}>
               <Trash2 size={22} className="text-red-500" />
             </div>
-            <h3 className="serif text-lg text-slate-800 text-center mb-2">Hapus Aduan?</h3>
+            <h3 className="text-lg text-slate-800 text-center mb-2">Hapus Aduan?</h3>
             <p className="text-sm text-slate-500 text-center mb-6">Aduan akan dihapus permanen dan tidak bisa dikembalikan.</p>
             <div className="flex gap-3">
               <button onClick={() => setDeleteConfirm(null)}

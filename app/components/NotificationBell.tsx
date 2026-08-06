@@ -6,7 +6,8 @@ import { Bell, CheckCircle2, XCircle, X, Inbox } from "lucide-react";
 interface Notification {
   id: string;
   judul: string;
-  status: "diterima" | "ditolak";
+  status: "diterima" | "ditolak" | "selesai";
+  nomorTiket?: string;
   balasan?: string | null;
   updatedAt: string;
   kategori: string;
@@ -116,7 +117,7 @@ export default function NotificationBell() {
         {/* Red dot */}
         {unreadCount > 0 && (
           <span
-            className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded flex items-center justify-center text-[9px] font-bold text-white animate-fade-up"
+            className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded flex items-center justify-center text-[9px] font-semibold text-white animate-fade-up"
             style={{ backgroundColor: "#ef4444", lineHeight: 1 }}
           >
             {unreadCount > 9 ? "9+" : unreadCount}
@@ -141,9 +142,9 @@ export default function NotificationBell() {
             style={{ backgroundColor: "#0f1b2d" }}>
             <div className="flex items-center gap-2">
               <Bell size={14} className="text-teal-400" />
-              <span className="text-sm font-semibold text-white serif">Notifikasi</span>
+              <span className="text-sm font-semibold text-white">Notifikasi</span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold"
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold"
                   style={{ backgroundColor: "#ef4444", color: "white" }}>
                   {unreadCount} baru
                 </span>
@@ -183,7 +184,7 @@ export default function NotificationBell() {
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[10px] font-bold uppercase tracking-wider"
+                          <span className="text-[10px] font-semibold uppercase tracking-wider"
                             style={{ color: isDiterima ? "#065f46" : "#991b1b" }}>
                             {isDiterima ? "✓ Aduan Diterima" : "✗ Aduan Ditolak"}
                           </span>
@@ -193,6 +194,7 @@ export default function NotificationBell() {
                           )}
                         </div>
                         <p className="text-xs font-semibold text-slate-800 truncate">{n.judul}</p>
+                        {n.nomorTiket && <p className="text-[10px] font-mono text-blue-600">{n.nomorTiket}</p>}
                         {n.balasan && (
                           <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
                             {n.balasan}

@@ -40,7 +40,7 @@ export default function LoginMahasiswaPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
-      style={{ backgroundColor: "#0f1b2d" }}>
+      style={{ backgroundColor: "#0f172a" }}>
       {/* Background */}
       <div className="absolute inset-0 opacity-15" style={{
         background: "radial-gradient(ellipse 60% 50% at 30% 50%, #0d9488, transparent), radial-gradient(ellipse 50% 40% at 70% 30%, #f59e0b, transparent)",
@@ -61,12 +61,12 @@ export default function LoginMahasiswaPage() {
                 (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
               }} />
           </div>
-          <h1 className="serif text-2xl text-white mb-1">Portal Mahasiswa</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-white mb-1">Portal Mahasiswa</h1>
           <p className="text-slate-400 text-xs">SVC — Student Voice Campus</p>
         </div>
 
         {/* Card */}
-        <div className="rounded overflow-hidden shadow-2xl"
+        <div className="rounded-2xl overflow-hidden shadow-2xl"
           style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="p-7">
             <form onSubmit={handleSubmit} className="space-y-4">

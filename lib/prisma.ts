@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 
-// Fix SSL certificate issue dengan Supabase di Windows
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+// Hanya nonaktifkan validasi TLS di development (workaround SSL Supabase di Windows).
+// Di production validasi sertifikat tetap aktif — gunakan ?sslmode=require di DATABASE_URL.
+if (process.env.NODE_ENV === "development") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;

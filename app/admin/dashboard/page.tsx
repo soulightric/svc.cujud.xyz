@@ -76,7 +76,7 @@ function StatCard({ label, value, sub, color, bg, border, icon: Icon, suffix = "
           <Icon size={16} style={{ color }} />
         </div>
       </div>
-      <p className="text-3xl font-bold serif mb-1" style={{ color }}>{value}{suffix}</p>
+      <p className="text-3xl font-semibold mb-1" style={{ color }}>{value}{suffix}</p>
       {sub && <p className="text-xs" style={{ color: color + "99" }}>{sub}</p>}
     </div>
   );
@@ -132,7 +132,7 @@ export default function DashboardPage() {
               <div className="w-7 h-7 rounded flex items-center justify-center" style={{ backgroundColor: "#0d9488" }}>
                 <LayoutDashboard size={14} className="text-white" />
               </div>
-              <span className="text-white font-semibold text-sm serif">Dashboard Statistik</span>
+              <span className="text-white font-semibold text-sm">Dashboard Statistik</span>
             </div>
             <div className="hidden md:flex items-center gap-3">
               <div className="w-px h-4 bg-slate-700" />

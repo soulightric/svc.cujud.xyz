@@ -1,61 +1,119 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
+import {
+  getOptionalAdmin,
+  getOptionalMahasiswa,
+  requireMahasiswa,
+} from "@/lib/api-auth";
+import { generateNomorTiket } from "@/lib/ticket";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const adminToken = cookieStore.get("admin_token")?.value;
+    const admin = await getOptionalAdmin();
+    const mahasiswa = await getOptionalMahasiswa();
 
-    // Tentukan scope berdasarkan admin yang login
-    let where: { kategori?: string; diteruskan?: boolean } = {};
-    if (adminToken) {
-      const payload = await verifyToken(adminToken);
-      if (payload && payload.role === "ADMIN" && typeof payload.kategori === "string") {
-        // Admin kategori: hanya melihat feedback kategorinya yang sudah DITERUSKAN
-        // oleh admin biasa (SUPER_ADMIN).
-        where = { kategori: payload.kategori, diteruskan: true };
-      }
-      // SUPER_ADMIN (admin biasa/penerus) -> where kosong = semua feedback
+    if (!admin && !mahasiswa) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    // Tanpa admin_token (mahasiswa/publik) -> perilaku lama: kembalikan semua
-    // (halaman mahasiswa memfilter miliknya sendiri di sisi klien).
 
-    const feedbacks = await prisma.feedback.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: { mahasiswa: { select: { nama: true, nim: true } } },
+    const { searchParams } = new URL(req.url);
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("limit") || "20", 10) || 20)
+    );
+    const status = searchParams.get("status");
+    const kategori = searchParams.get("kategori");
+    const search = searchParams.get("q")?.trim();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {};
+
+    if (admin) {
+      if (admin.role === "ADMIN" && typeof admin.kategori === "string") {
+        where.kategori = admin.kategori;
+        where.diteruskan = true;
+      }
+    } else if (mahasiswa) {
+      where.mahasiswaId = mahasiswa.id;
+    }
+
+    if (status) where.status = status;
+    if (kategori && admin?.role === "SUPER_ADMIN") where.kategori = kategori;
+
+    if (search) {
+      where.OR = [
+        { judul: { contains: search, mode: "insensitive" } },
+        { deskripsi: { contains: search, mode: "insensitive" } },
+        { nomorTiket: { contains: search, mode: "insensitive" } },
+        ...(admin
+          ? [
+              { mahasiswa: { nama: { contains: search, mode: "insensitive" } } },
+              { mahasiswa: { nim: { contains: search, mode: "insensitive" } } },
+            ]
+          : []),
+      ];
+    }
+
+    const [total, feedbacks] = await Promise.all([
+      prisma.feedback.count({ where }),
+      prisma.feedback.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          mahasiswa: { select: { nama: true, nim: true } },
+          _count: { select: { comments: true } },
+        },
+      }),
+    ]);
+
+    return NextResponse.json({
+      data: feedbacks,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     });
-    return NextResponse.json(feedbacks);
-  } catch {
+  } catch (error) {
+    console.error("GET /api/feedback:", error);
     return NextResponse.json({ error: "Gagal mengambil data" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("mahasiswa_token")?.value;
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const payload = await verifyToken(token);
-    if (!payload || typeof payload.id !== "string") {
-      return NextResponse.json({ error: "Token tidak valid" }, { status: 401 });
-    }
+    const auth = await requireMahasiswa();
+    if (!auth.ok) return auth.response;
 
     const { kategori, judul, deskripsi, lampiran } = await req.json();
     if (!kategori || !judul || !deskripsi) {
-      return NextResponse.json({ error: "Semua field wajib diisi" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Semua field wajib diisi" },
+        { status: 400 }
+      );
     }
 
+    const nomorTiket = await generateNomorTiket();
+
     const feedback = await prisma.feedback.create({
-      data: { kategori, judul, deskripsi, mahasiswaId: payload.id, ...(lampiran && { lampiran }) },
+      data: {
+        nomorTiket,
+        kategori,
+        judul,
+        deskripsi,
+        mahasiswaId: auth.payload.id,
+        ...(lampiran && { lampiran }),
+      },
       include: { mahasiswa: { select: { nama: true, nim: true } } },
     });
 
     return NextResponse.json(feedback, { status: 201 });
-  } catch {
+  } catch (error) {
+    console.error("POST /api/feedback:", error);
     return NextResponse.json({ error: "Gagal menyimpan aduan" }, { status: 500 });
   }
 }

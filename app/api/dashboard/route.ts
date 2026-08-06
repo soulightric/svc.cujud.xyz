@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/api-auth";
 
 export async function GET() {
   try {
+    const auth = await requireAdmin();
+    if (!auth.ok) return auth.response;
     const [allFeedbacks, totalMahasiswa] = await Promise.all([
       prisma.feedback.findMany({
         orderBy: { createdAt: "asc" },

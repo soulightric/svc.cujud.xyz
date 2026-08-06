@@ -9,13 +9,14 @@ datasource db {
 }
 
 model Admin {
-  id        String   @id @default(cuid())
-  username  String   @unique
+  id        String    @id @default(cuid())
+  username  String    @unique
   password  String
-  role      String   @default("ADMIN") // SUPER_ADMIN (admin biasa/penerus) atau ADMIN (admin kategori)
-  kategori  String?  // diisi untuk admin kategori: akademik, perpustakaan, dst. null untuk SUPER_ADMIN
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role      String    @default("ADMIN") // SUPER_ADMIN atau ADMIN
+  kategori  String?   // diisi untuk admin kategori; null untuk SUPER_ADMIN
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  comments  Comment[]
 }
 
 model Mahasiswa {
@@ -23,23 +24,55 @@ model Mahasiswa {
   nim       String     @unique
   nama      String
   password  String
+  email     String?    // opsional — untuk notifikasi status aduan
   createdAt DateTime   @default(now())
   feedbacks Feedback[]
+  comments  Comment[]
 }
 
 model Feedback {
+  id              String     @id @default(cuid())
+  nomorTiket      String     @unique // ADU-2026-0001
+  kategori        String
+  judul           String
+  deskripsi       String
+  status          String     @default("menunggu")
+  balasan         String?    // ringkasan balasan terakhir (kompatibilitas UI lama)
+  lampiran        String?
+  lampiranBalasan String?
+  diteruskan      Boolean    @default(false)
+  diteruskanAt    DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  mahasiswaId     String
+  mahasiswa       Mahasiswa  @relation(fields: [mahasiswaId], references: [id])
+  comments        Comment[]
+
+  @@index([status])
+  @@index([kategori])
+  @@index([mahasiswaId])
+  @@index([diteruskan])
+  @@index([createdAt])
+  @@index([status, kategori])
+  @@index([nomorTiket])
+}
+
+model Comment {
   id          String     @id @default(cuid())
-  kategori    String
-  judul       String
-  deskripsi   String
-  status      String     @default("menunggu")
-  balasan     String?
-  lampiran    String?    // URL foto dari Cloudinary (lampiran dari mahasiswa)
-  lampiranBalasan String? // URL foto lampiran dari admin (bukti tindak lanjut / penyelesaian)
-  diteruskan   Boolean    @default(false) // true jika sudah diteruskan SUPER_ADMIN ke admin kategori
-  diteruskanAt DateTime?  // waktu diteruskan
+  isi         String
+  adminId     String?
+  admin       Admin?     @relation(fields: [adminId], references: [id])
+  mahasiswaId String?
+  mahasiswa   Mahasiswa? @relation(fields: [mahasiswaId], references: [id])
+  feedbackId  String
+  feedback    Feedback   @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  mahasiswaId String
-  mahasiswa   Mahasiswa  @relation(fields: [mahasiswaId], references: [id])
+
+  @@index([feedbackId])
+  @@index([createdAt])
+}
+
+model TicketCounter {
+  year Int @id
+  last Int @default(0)
 }

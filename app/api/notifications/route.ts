@@ -1,28 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
+import { requireMahasiswa } from "@/lib/api-auth";
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("mahasiswa_token")?.value;
-    if (!token) return NextResponse.json([], { status: 401 });
+    const auth = await requireMahasiswa();
+    if (!auth.ok) return NextResponse.json([], { status: 401 });
 
-    const payload = await verifyToken(token);
-    if (!payload || typeof payload.id !== "string") {
-      return NextResponse.json([], { status: 401 });
-    }
-
-    // Ambil aduan milik mahasiswa yang sudah diterima/ditolak
+    // Aduan milik mahasiswa yang sudah diproses (termasuk selesai)
     const feedbacks = await prisma.feedback.findMany({
       where: {
-        mahasiswaId: payload.id,
-        status: { in: ["diterima", "ditolak"] },
+        mahasiswaId: auth.payload.id,
+        status: { in: ["diterima", "ditolak", "selesai"] },
       },
       orderBy: { updatedAt: "desc" },
+      take: 30,
       select: {
         id: true,
+        nomorTiket: true,
         judul: true,
         status: true,
         balasan: true,

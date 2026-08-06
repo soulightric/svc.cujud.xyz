@@ -1,0 +1,85 @@
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { verifyToken, type AdminTokenPayload, type MahasiswaTokenPayload } from "@/lib/auth";
+
+export async function requireAdmin(
+  options?: { superOnly?: boolean }
+): Promise<
+  | { ok: true; payload: AdminTokenPayload }
+  | { ok: false; response: NextResponse }
+> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("admin_token")?.value;
+  if (!token) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  const payload = (await verifyToken(token)) as AdminTokenPayload | null;
+  if (!payload || (payload.role !== "SUPER_ADMIN" && payload.role !== "ADMIN")) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Token tidak valid" }, { status: 401 }),
+    };
+  }
+
+  if (options?.superOnly && payload.role !== "SUPER_ADMIN") {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: "Hanya Super Admin yang bisa mengakses" },
+        { status: 403 }
+      ),
+    };
+  }
+
+  return { ok: true, payload };
+}
+
+export async function requireMahasiswa(): Promise<
+  | { ok: true; payload: MahasiswaTokenPayload }
+  | { ok: false; response: NextResponse }
+> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("mahasiswa_token")?.value;
+  if (!token) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  const payload = (await verifyToken(token)) as MahasiswaTokenPayload | null;
+  if (!payload || payload.role !== "mahasiswa" || typeof payload.id !== "string") {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Token tidak valid" }, { status: 401 }),
+    };
+  }
+
+  return { ok: true, payload };
+}
+
+export async function getOptionalAdmin(): Promise<AdminTokenPayload | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("admin_token")?.value;
+  if (!token) return null;
+  const payload = (await verifyToken(token)) as AdminTokenPayload | null;
+  if (!payload || (payload.role !== "SUPER_ADMIN" && payload.role !== "ADMIN")) {
+    return null;
+  }
+  return payload;
+}
+
+export async function getOptionalMahasiswa(): Promise<MahasiswaTokenPayload | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("mahasiswa_token")?.value;
+  if (!token) return null;
+  const payload = (await verifyToken(token)) as MahasiswaTokenPayload | null;
+  if (!payload || payload.role !== "mahasiswa" || typeof payload.id !== "string") {
+    return null;
+  }
+  return payload;
+}

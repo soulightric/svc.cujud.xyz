@@ -1,7 +1,11 @@
 .env
 .env.local
+.env*.local
 node_modules/
 .next/
+out/
+dist/
+*.log
+.DS_Store
+# Typo residual from old gitignore
 .dockreignore
-Dockerfile
-docker-compose.yml

@@ -1,21 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
-
-// Helper untuk ambil admin yang sedang login
-async function getCurrentAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("admin_token")?.value;
-  if (!token) return null;
-  return verifyToken(token);
-}
+import { hashPassword } from "@/lib/hash";
+import { requireAdmin } from "@/lib/api-auth";
 
 export async function GET() {
-  const admin = await getCurrentAdmin();
-  if (!admin || admin.role !== "SUPER_ADMIN") {
-    return NextResponse.json({ error: "Hanya Super Admin yang bisa mengakses" }, { status: 403 });
-  }
+  const auth = await requireAdmin({ superOnly: true });
+  if (!auth.ok) return auth.response;
 
   const admins = await prisma.admin.findMany({
     select: {
@@ -32,45 +22,63 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const admin = await getCurrentAdmin();
-  if (!admin || admin.role !== "SUPER_ADMIN") {
-    return NextResponse.json({ error: "Hanya Super Admin yang bisa menambah admin baru" }, { status: 403 });
-  }
+  const auth = await requireAdmin({ superOnly: true });
+  if (!auth.ok) return auth.response;
 
   try {
     const { username, password, role = "ADMIN", kategori = null } = await req.json();
 
     if (!username || !password) {
-      return NextResponse.json({ error: "Username dan password wajib diisi" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Username dan password wajib diisi" },
+        { status: 400 }
+      );
+    }
+
+    if (typeof password !== "string" || password.length < 6) {
+      return NextResponse.json(
+        { error: "Password minimal 6 karakter" },
+        { status: 400 }
+      );
     }
 
     const KATEGORI_VALID = [
-      "akademik", "perpustakaan", "internet", "kantin",
-      "gedung", "keamanan", "laboratorium", "transportasi",
+      "akademik",
+      "perpustakaan",
+      "internet",
+      "kantin",
+      "gedung",
+      "keamanan",
+      "laboratorium",
+      "transportasi",
     ];
 
     const finalRole = role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "ADMIN";
 
-    // Admin kategori (ADMIN) wajib punya kategori yang valid
     let finalKategori: string | null = null;
     if (finalRole === "ADMIN") {
       if (!kategori || !KATEGORI_VALID.includes(kategori)) {
-        return NextResponse.json({ error: "Kategori admin tidak valid" }, { status: 400 });
+        return NextResponse.json(
+          { error: "Kategori admin tidak valid" },
+          { status: 400 }
+        );
       }
       finalKategori = kategori;
     }
 
-    // Cek apakah username sudah ada
     const existing = await prisma.admin.findUnique({ where: { username } });
     if (existing) {
-      return NextResponse.json({ error: "Username sudah digunakan" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Username sudah digunakan" },
+        { status: 400 }
+      );
     }
 
-    // Buat admin baru (sementara plain text, nanti bisa di-hash)
+    const hashed = await hashPassword(password);
     const newAdmin = await prisma.admin.create({
       data: {
         username,
-        password, // nanti kita ganti pakai hash
+        password: hashed,
         role: finalRole,
         kategori: finalKategori,
       },

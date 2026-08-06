@@ -1,0 +1,25 @@
+{
+  "name": "Student Voice Campus ITH",
+  "short_name": "SVC ITH",
+  "description": "Portal pengaduan dan feedback fasilitas kampus ITH",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1b2d",
+  "theme_color": "#0d9488",
+  "orientation": "portrait-primary",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
