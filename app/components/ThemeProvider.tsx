@@ -9,71 +9,99 @@ import {
   type ReactNode,
 } from "react";
 
-type Theme = "light" | "dark";
+export type ThemeMode = "light" | "dark" | "system";
+export type ResolvedTheme = "light" | "dark";
+
+export const THEME_KEY = "svc-theme";
 
 interface ThemeCtx {
-  theme: Theme;
+  /** Pilihan user: light | dark | system */
+  mode: ThemeMode;
+  /** Tema yang benar-benar dipakai setelah "system" diresolusi */
+  theme: ResolvedTheme;
+  setMode: (m: ThemeMode) => void;
   toggle: () => void;
-  setTheme: (t: Theme) => void;
+  mounted: boolean;
 }
 
 const Ctx = createContext<ThemeCtx>({
+  mode: "system",
   theme: "light",
+  setMode: () => {},
   toggle: () => {},
-  setTheme: () => {},
+  mounted: false,
 });
 
 export function useTheme() {
   return useContext(Ctx);
 }
 
-function applyTheme(theme: Theme) {
+function systemTheme(): ResolvedTheme {
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function readMode(): ThemeMode {
+  try {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === "light" || stored === "dark" || stored === "system") return stored;
+  } catch {
+    /* ignore */
+  }
+  return "system";
+}
+
+function applyTheme(theme: ResolvedTheme) {
   const root = document.documentElement;
-  if (theme === "dark") root.classList.add("dark");
-  else root.classList.remove("dark");
+  root.classList.toggle("dark", theme === "dark");
+  root.style.colorScheme = theme;
 }
 
 export default function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
-  const [ready, setReady] = useState(false);
+  const [mode, setModeState] = useState<ThemeMode>("system");
+  const [theme, setThemeResolved] = useState<ResolvedTheme>("light");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("svc-theme") as Theme | null;
-      const prefersDark =
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initial: Theme =
-        stored === "dark" || stored === "light"
-          ? stored
-          : prefersDark
-            ? "dark"
-            : "light";
-      setThemeState(initial);
-      applyTheme(initial);
-    } catch {
-      /* ignore */
-    }
-    setReady(true);
+    const initialMode = readMode();
+    const resolved = initialMode === "system" ? systemTheme() : initialMode;
+    setModeState(initialMode);
+    setThemeResolved(resolved);
+    applyTheme(resolved);
+    setMounted(true);
   }, []);
 
-  const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
-    applyTheme(t);
+  // Ikuti perubahan preferensi OS saat mode = system
+  useEffect(() => {
+    if (mode !== "system") return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => {
+      const resolved = mq.matches ? "dark" : "light";
+      setThemeResolved(resolved);
+      applyTheme(resolved);
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [mode]);
+
+  const setMode = useCallback((m: ThemeMode) => {
+    const resolved = m === "system" ? systemTheme() : m;
+    setModeState(m);
+    setThemeResolved(resolved);
+    applyTheme(resolved);
     try {
-      localStorage.setItem("svc-theme", t);
+      localStorage.setItem(THEME_KEY, m);
     } catch {
       /* ignore */
     }
   }, []);
 
   const toggle = useCallback(() => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  }, [theme, setTheme]);
+    setMode(theme === "dark" ? "light" : "dark");
+  }, [theme, setMode]);
 
-  // Avoid flash: still render children; script in layout handles first paint
   return (
-    <Ctx.Provider value={{ theme: ready ? theme : "light", toggle, setTheme }}>
+    <Ctx.Provider value={{ mode, theme, setMode, toggle, mounted }}>
       {children}
     </Ctx.Provider>
   );

@@ -191,6 +191,15 @@ export async function DELETE(
       }
     }
 
+    // Penghapusan permanen dibatasi ke SUPER_ADMIN saja. Admin kategori
+    // hanya berwenang menindaklanjuti aduan (PATCH), bukan menghapusnya.
+    if (requester.role === "admin" && requester.adminRole !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Hanya super admin yang dapat menghapus aduan" },
+        { status: 403 }
+      );
+    }
+
     await prisma.feedback.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch {

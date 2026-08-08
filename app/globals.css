@@ -22,15 +22,31 @@
   --bg: #f8fafc;
   --bg-elevated: #ffffff;
   --bg-muted: #f1f5f9;
+  --bg-subtle: #f8fafc;
   --text: #0f172a;
   --text-muted: #64748b;
+  --text-faint: #94a3b8;
   --border: #e2e8f0;
+  --border-strong: #cbd5e1;
   --header-bg: #0f172a;
+  --hero-bg: #0f1b2d;
+  --accent: #0d9488;
+  --accent-soft-bg: #f0fdfa;
+  --accent-soft-border: #99f6e4;
+  --info: #2563eb;
+  --info-soft-bg: #eff6ff;
+  --info-soft-border: #dbeafe;
+  --danger: #b91c1c;
+  --danger-soft-bg: #fef2f2;
+  --danger-soft-border: #fecaca;
+  --shadow-color: rgba(15, 23, 42, 0.06);
   --scrollbar-track: #f1f5f9;
   --scrollbar-thumb: #cbd5e1;
   --ring: rgba(13, 148, 136, 0.35);
-  --radius: 0.75rem;
+  --radius: 0.25rem;
   --font: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  color-scheme: light;
 }
 
 .dark {
@@ -38,19 +54,40 @@
   --navy: #f1f5f9;
   --navy-mid: #e2e8f0;
   --navy-light: #94a3b8;
+  --teal: #2dd4bf;
+  --teal-light: #5eead4;
   --bg: #0b1220;
   --bg-elevated: #111827;
   --bg-muted: #1e293b;
+  --bg-subtle: #0f172a;
   --text: #f1f5f9;
   --text-muted: #94a3b8;
-  --border: #1e293b;
+  --text-faint: #64748b;
+  --border: #1f2b3e;
+  --border-strong: #334155;
   --header-bg: #020617;
+  --hero-bg: #060d1a;
+  --accent: #2dd4bf;
+  --accent-soft-bg: #062c2b;
+  --accent-soft-border: #115e59;
+  --info: #60a5fa;
+  --info-soft-bg: #0f213f;
+  --info-soft-border: #1e3a8a;
+  --danger: #f87171;
+  --danger-soft-bg: #2a1214;
+  --danger-soft-border: #7f1d1d;
+  --shadow-color: rgba(0, 0, 0, 0.4);
   --scrollbar-track: #0f172a;
   --scrollbar-thumb: #334155;
+  --status-yellow: #fbbf24;
   --status-yellow-bg: #422006;
+  --status-green: #34d399;
   --status-green-bg: #052e1c;
+  --status-red: #f87171;
   --status-red-bg: #450a0a;
   --ring: rgba(45, 212, 191, 0.35);
+
+  color-scheme: dark;
 }
 
 * {
@@ -73,13 +110,16 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Semua heading pakai Inter (bukan serif) */
-h1, h2, h3, h4, h5, h6, .serif {
-  font-family: var(--font);
-  font-weight: 600;
-  letter-spacing: -0.025em;
-  line-height: 1.25;
-  color: inherit;
+/* Semua heading pakai Inter (bukan serif).
+   Dibungkus @layer base agar utility warna Tailwind (mis. text-white) tetap menang. */
+@layer base {
+  h1, h2, h3, h4, h5, h6, .serif {
+    font-family: var(--font);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+    color: inherit;
+  }
 }
 
 /* Utilitas fokus yang konsisten */
@@ -97,7 +137,7 @@ input[type="number"],
 textarea,
 select {
   font-family: var(--font);
-  border-radius: 0.625rem;
+  border-radius: var(--radius);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
@@ -119,7 +159,38 @@ a {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 2px var(--shadow-color);
+}
+
+/* ── Utility semantik theme-aware ── */
+.surface-page {
+  background-color: var(--bg);
+  color: var(--text);
+}
+.surface-card {
+  background-color: var(--bg-elevated);
+  border-color: var(--border);
+}
+.surface-muted {
+  background-color: var(--bg-muted);
+  border-color: var(--border);
+}
+.text-primary {
+  color: var(--text);
+}
+.text-secondary {
+  color: var(--text-muted);
+}
+.text-faint {
+  color: var(--text-faint);
+}
+.border-theme {
+  border-color: var(--border);
+}
+
+/* Spinner tetap bulat karena bentuknya fungsional, bukan dekoratif */
+.spinner {
+  border-radius: 50%;
 }
 
 /* Scrollbar */
@@ -179,35 +250,82 @@ a {
   border-radius: inherit;
 }
 
-/* Dark mode surface overrides */
-.dark .bg-white {
+/* ── Area yang SELALU gelap (hero, header, CTA) ──
+   Menetapkan warna dasar terang. Ditaruh di @layer base agar utility
+   Tailwind (text-white, text-slate-300, dsb.) tetap bisa menimpanya. */
+@layer base {
+  .on-dark {
+    color: #e2e8f0;
+  }
+}
+
+/* Dark mode surface overrides.
+   :not(.on-dark *) mencegah override menimpa teks di area gelap permanen. */
+.dark .bg-white:not(.on-dark):not(.on-dark *) {
   background-color: var(--bg-elevated) !important;
 }
-.dark .bg-slate-50 {
+.dark .bg-slate-50:not(.on-dark):not(.on-dark *),
+.dark .bg-slate-100:not(.on-dark):not(.on-dark *) {
   background-color: var(--bg-muted) !important;
 }
-.dark .text-slate-800,
-.dark .text-slate-900 {
+.dark .bg-slate-900:not(.on-dark):not(.on-dark *) {
+  background-color: var(--header-bg) !important;
+}
+.dark .text-slate-800:not(.on-dark *),
+.dark .text-slate-900:not(.on-dark *) {
   color: var(--text) !important;
 }
-.dark .text-slate-600,
-.dark .text-slate-700 {
+.dark .text-slate-600:not(.on-dark *),
+.dark .text-slate-700:not(.on-dark *) {
   color: #cbd5e1 !important;
 }
-.dark .text-slate-400,
-.dark .text-slate-500 {
+.dark .text-slate-400:not(.on-dark *),
+.dark .text-slate-500:not(.on-dark *) {
   color: var(--text-muted) !important;
 }
-.dark .border-slate-100,
-.dark .border-slate-200 {
+.dark .border-slate-100:not(.on-dark *),
+.dark .border-slate-200:not(.on-dark *),
+.dark .border-slate-300:not(.on-dark *) {
   border-color: var(--border) !important;
 }
-.dark input,
-.dark textarea,
-.dark select {
+.dark .hover\:bg-slate-50:hover:not(.on-dark *),
+.dark .hover\:bg-slate-100:hover:not(.on-dark *) {
+  background-color: var(--bg-muted) !important;
+}
+
+/* Soft tinted blocks agar tidak menyilaukan di dark */
+.dark .bg-blue-50:not(.on-dark *) {
+  background-color: var(--info-soft-bg) !important;
+}
+.dark .border-blue-100:not(.on-dark *),
+.dark .border-blue-200:not(.on-dark *) {
+  border-color: var(--info-soft-border) !important;
+}
+.dark .text-blue-600:not(.on-dark *),
+.dark .text-blue-700:not(.on-dark *) {
+  color: var(--info) !important;
+}
+.dark .bg-red-50:not(.on-dark *) {
+  background-color: var(--danger-soft-bg) !important;
+}
+.dark .border-red-200:not(.on-dark *) {
+  border-color: var(--danger-soft-border) !important;
+}
+.dark .text-red-600:not(.on-dark *),
+.dark .text-red-700:not(.on-dark *) {
+  color: var(--danger) !important;
+}
+
+.dark input:not(.on-dark *),
+.dark textarea:not(.on-dark *),
+.dark select:not(.on-dark *) {
   background-color: var(--bg-muted);
   color: var(--text);
   border-color: var(--border);
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--text-faint);
 }
 
 /* Soften hard shadows in dark */

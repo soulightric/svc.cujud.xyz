@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import NavLink from "@/app/components/NavLink";
 import CommentThread from "@/app/components/CommentThread";
-import ThemeToggle from "@/app/components/ThemeToggle";
+import Footer from "@/app/components/Footer";
 import {
   BookOpen, GraduationCap, Wifi, Utensils, Building2, ShieldCheck,
   FlaskConical, Bus, CheckCircle2, Clock3, XCircle, MessageSquare,
@@ -140,7 +140,7 @@ function DetailPanel({ fb, onClose, onUpdate, isSuper = false, onForward }: {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: "rgba(15,27,45,0.7)", backdropFilter: "blur(4px)" }}>
       <div className="bg-white rounded shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-up">
-        <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between rounded-t-2xl">
+        <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between rounded">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: kat.color + "18", color: kat.color }}>
               <KatIcon size={16} /></div>
@@ -175,7 +175,7 @@ function DetailPanel({ fb, onClose, onUpdate, isSuper = false, onForward }: {
 
           {fb.lampiran && (
             <div className="rounded overflow-hidden border border-slate-200">
-              <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: "#f8f7f4" }}>
+              <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: "var(--bg-muted)" }}>
                 <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                   <ImageIcon size={11} />Foto Lampiran
                 </p>
@@ -219,7 +219,7 @@ function DetailPanel({ fb, onClose, onUpdate, isSuper = false, onForward }: {
                 return (
                   <button key={s} onClick={() => setStatus(s)}
                     className="flex flex-col items-center gap-1.5 p-3 rounded border text-xs font-semibold transition-all"
-                    style={{ borderColor: sel ? cfg.color : "#e2e8f0", backgroundColor: sel ? cfg.bg : "white", color: sel ? cfg.color : "#94a3b8" }}>
+                    style={{ borderColor: sel ? cfg.color : "var(--border)", backgroundColor: sel ? cfg.bg : "var(--bg-elevated)", color: sel ? cfg.color : "var(--text-muted)" }}>
                     <Icon size={18} />{cfg.label}
                   </button>
                 );
@@ -234,9 +234,9 @@ function DetailPanel({ fb, onClose, onUpdate, isSuper = false, onForward }: {
             <textarea value={balasan} onChange={(e) => setBalasan(e.target.value)} rows={4}
               placeholder={status === "diterima" ? "Jelaskan tindak lanjut..." : status === "ditolak" ? "Jelaskan alasan penolakan..." : "Tambahkan catatan..."}
               className="w-full px-3 py-2.5 rounded border text-sm transition-all outline-none resize-none"
-              style={{ borderColor: "#e2e8f0" }}
+              style={{ borderColor: "var(--border)" }}
               onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
-              onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")} />
+              onBlur={(e) => (e.target.style.borderColor = "var(--border)")} />
           </div>
 
           {/* Lampiran balasan dari admin (mis. bukti penyelesaian) */}
@@ -290,8 +290,8 @@ function DetailPanel({ fb, onClose, onUpdate, isSuper = false, onForward }: {
             ) : (
               <button type="button" onClick={() => fileRef.current?.click()}
                 className="w-full flex flex-col items-center justify-center gap-2 py-5 rounded border-2 border-dashed transition-all hover:border-teal-400 hover:bg-teal-50"
-                style={{ borderColor: "#e2e8f0" }}>
-                <div className="w-10 h-10 rounded flex items-center justify-center" style={{ backgroundColor: "#f1f5f9" }}>
+                style={{ borderColor: "var(--border)" }}>
+                <div className="w-10 h-10 rounded flex items-center justify-center" style={{ backgroundColor: "var(--bg-muted)" }}>
                   <ImageIcon size={20} className="text-slate-400" />
                 </div>
                 <div className="text-center">
@@ -434,7 +434,7 @@ function MahasiswaTab() {
       </div>
 
       {importResult && (
-        <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-700">
+        <div className="mb-4 rounded border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-700">
           {importResult}
           <p className="text-[10px] text-slate-400 mt-1">Format CSV: nim,nama,password,email (password &amp; email opsional; default password Mahasiswa123)</p>
         </div>
@@ -457,18 +457,18 @@ function MahasiswaTab() {
                 <input type="text" value={form.nim} onChange={(e) => setForm((f) => ({ ...f, nim: e.target.value }))}
                   placeholder="24XXXXXXXX"
                   className="w-full px-3 py-2.5 rounded border text-sm outline-none transition-all"
-                  style={{ borderColor: "#e2e8f0" }}
+                  style={{ borderColor: "var(--border)" }}
                   onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
-                  onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")} />
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border)")} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Nama *</label>
                 <input type="text" value={form.nama} onChange={(e) => setForm((f) => ({ ...f, nama: e.target.value }))}
                   placeholder="Nama lengkap"
                   className="w-full px-3 py-2.5 rounded border text-sm outline-none transition-all"
-                  style={{ borderColor: "#e2e8f0" }}
+                  style={{ borderColor: "var(--border)" }}
                   onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
-                  onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")} />
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border)")} />
               </div>
             </div>
             <div>
@@ -478,9 +478,9 @@ function MahasiswaTab() {
                   onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   placeholder="Password awal mahasiswa"
                   className="w-full px-3 pr-10 py-2.5 rounded border text-sm outline-none transition-all"
-                  style={{ borderColor: "#e2e8f0" }}
+                  style={{ borderColor: "var(--border)" }}
                   onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
-                  onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")} />
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border)")} />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
                   {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -589,9 +589,9 @@ function MahasiswaTab() {
             <input type="text" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Password baru"
               className="w-full px-3 py-2.5 rounded border text-sm outline-none mb-4 transition-all"
-              style={{ borderColor: "#e2e8f0" }}
+              style={{ borderColor: "var(--border)" }}
               onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
-              onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")} />
+              onBlur={(e) => (e.target.style.borderColor = "var(--border)")} />
             <div className="flex gap-3">
               <button onClick={() => setResetTarget(null)}
                 className="flex-1 py-2.5 rounded border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">Batal</button>
@@ -704,9 +704,9 @@ export default function AdminPage() {
   }, [feedbacks, filterStatus, filterKategori, search]);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f0f2f5" }}>
+    <div className="min-h-screen flex flex-col surface-page">
       {/* Header */}
-      <header style={{ backgroundColor: "#0f1b2d" }} className="px-6 py-4 relative">
+      <header style={{ backgroundColor: "#0f1b2d" }} className="on-dark px-6 py-4 relative">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Logo + Nav */}
           <div className="flex items-center gap-3">
@@ -741,7 +741,6 @@ export default function AdminPage() {
               <a href="/api/export" className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:text-teal-400 hover:bg-white/5 transition-all">
                 <Download size={12} />Export CSV
               </a>
-              <ThemeToggle className="hidden md:inline-flex" />
             <button onClick={handleLogout}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium text-slate-400 hover:bg-red-500 text-white transition-colors"
               style={{ border: "1px solid rgba(255, 255, 255,0.1)"  }}>
@@ -760,7 +759,7 @@ export default function AdminPage() {
 
         {/* Mobile dropdown menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 z-50 animate-fade-up"
+          <div className="on-dark md:hidden absolute top-full left-0 right-0 z-50 animate-fade-up"
             style={{ backgroundColor: "#0f1b2d", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
             <div className="max-w-7xl mx-auto px-6 py-3 space-y-1">
               <NavLink href="/" exact onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 rounded text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all" activeClassName="!text-white bg-white/5">
@@ -858,8 +857,8 @@ export default function AdminPage() {
                 <button key={s} onClick={() => setFilterStatus(s)}
                   className="px-3 py-1.5 rounded text-xs font-semibold transition-all"
                   style={filterStatus === s
-                    ? { backgroundColor: "#0f1b2d", color: "white" }
-                    : { backgroundColor: "white", color: "#64748b", border: "1px solid #e2e8f0" }}>
+                    ? { backgroundColor: "var(--hero-bg)", color: "white" }
+                    : { backgroundColor: "var(--bg-muted)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
                   {s === "semua" ? `Semua (${stats.total})` : `${STATUS_CONFIG[s as StatusType].label} (${feedbacks.filter(f => f.status === s).length})`}
                 </button>
               ))}
@@ -871,8 +870,8 @@ export default function AdminPage() {
                 <button onClick={() => setFilterKategori("semua")}
                   className="px-3 py-1.5 rounded text-xs font-semibold transition-all"
                   style={filterKategori === "semua"
-                    ? { backgroundColor: "#0f1b2d", color: "white" }
-                    : { backgroundColor: "white", color: "#64748b", border: "1px solid #e2e8f0" }}>
+                    ? { backgroundColor: "var(--hero-bg)", color: "white" }
+                    : { backgroundColor: "var(--bg-muted)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
                   Semua Kategori
                 </button>
                 {KATEGORI_LIST.map((kat) => {
@@ -882,7 +881,7 @@ export default function AdminPage() {
                       className="px-3 py-1.5 rounded text-xs font-semibold transition-all flex items-center gap-1.5"
                       style={sel
                         ? { backgroundColor: kat.color, color: "white" }
-                        : { backgroundColor: "white", color: kat.color, border: `1px solid ${kat.color}40` }}>
+                        : { backgroundColor: "var(--bg-muted)", color: kat.color, border: `1px solid ${kat.color}40` }}>
                       <Icon size={12} />{kat.label} ({feedbacks.filter(f => f.kategori === kat.value).length})
                     </button>
                   );
@@ -960,10 +959,12 @@ export default function AdminPage() {
                               <Send size={9} />Diteruskan
                             </span>
                           )}
-                          <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm(fb.id); }}
-                            className="p-1 rounded opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 text-slate-300 hover:text-red-400">
-                            <Trash2 size={13} />
-                          </button>
+                          {isSuper && (
+                            <button onClick={(e) => { e.stopPropagation(); setDeleteConfirm(fb.id); }}
+                              className="p-1 rounded opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 text-slate-300 hover:text-red-400">
+                              <Trash2 size={13} />
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
@@ -1006,6 +1007,8 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      <Footer />
     </div>
   );
 }
@@ -1179,7 +1182,7 @@ function KelolaAdmin() {
                     <td className="py-3 px-4 font-medium">{admin.username}</td>
                     <td className="py-3 px-4">
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        className={`px-3 py-1 rounded text-xs font-semibold ${
                           admin.role === "SUPER_ADMIN"
                             ? "bg-purple-100 text-purple-700"
                             : "bg-slate-100 text-slate-600"

@@ -12,7 +12,7 @@ import {
 import Image from "next/image";
 import NotificationBell from "@/app/components/NotificationBell";
 import CommentThread from "@/app/components/CommentThread";
-import ThemeToggle from "@/app/components/ThemeToggle";
+import Footer from "@/app/components/Footer";
 import Link from 'next/link';
 
 type StatusType = "menunggu" | "diterima" | "ditolak" | "selesai";
@@ -235,7 +235,7 @@ function FeedbackCard({ fb, delay, currentUserId, onEdit, onDelete }: {
             </div>
             {fb.lampiran && (
               <div className="rounded overflow-hidden border border-slate-200">
-                <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: "#f8f7f4" }}>
+                <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: "var(--bg-muted)" }}>
                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     <ImageIcon size={11} />Foto Lampiran
                   </p>
@@ -263,7 +263,7 @@ function FeedbackCard({ fb, delay, currentUserId, onEdit, onDelete }: {
             )}
             {fb.lampiranBalasan && (
               <div className="rounded overflow-hidden border border-slate-200">
-                <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: "#f8f7f4" }}>
+                <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: "var(--bg-muted)" }}>
                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     <ImageIcon size={11} />Foto Lampiran dari Admin
                   </p>
@@ -388,9 +388,9 @@ function FeedbackForm({ onSubmit }: { onSubmit: (data: { kategori: string; judul
         <input type="text" value={form.judul} onChange={(e) => set("judul", e.target.value)}
           placeholder="Ringkasan singkat masalah Anda"
           className="w-full px-3 py-2.5 rounded border text-sm transition-all outline-none"
-          style={{ borderColor: errors.judul ? "#ef4444" : "#e2e8f0", backgroundColor: "white" }}
+          style={{ borderColor: errors.judul ? "#ef4444" : "var(--border)", backgroundColor: "var(--bg-elevated)", color: "var(--text)" }}
           onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
-          onBlur={(e) => (e.target.style.borderColor = errors.judul ? "#ef4444" : "#e2e8f0")} />
+          onBlur={(e) => (e.target.style.borderColor = errors.judul ? "#ef4444" : "var(--border)")} />
         {errors.judul && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={11} />{errors.judul}</p>}
       </div>
 
@@ -399,9 +399,9 @@ function FeedbackForm({ onSubmit }: { onSubmit: (data: { kategori: string; judul
         <textarea value={form.deskripsi} onChange={(e) => set("deskripsi", e.target.value)} rows={4}
           placeholder="Jelaskan masalah secara detail: lokasi, waktu kejadian, dampak..."
           className="w-full px-3 py-2.5 rounded border text-sm transition-all outline-none resize-none"
-          style={{ borderColor: errors.deskripsi ? "#ef4444" : "#e2e8f0", backgroundColor: "white" }}
+          style={{ borderColor: errors.deskripsi ? "#ef4444" : "var(--border)", backgroundColor: "var(--bg-elevated)", color: "var(--text)" }}
           onFocus={(e) => (e.target.style.borderColor = "#0d9488")}
-          onBlur={(e) => (e.target.style.borderColor = errors.deskripsi ? "#ef4444" : "#e2e8f0")} />
+          onBlur={(e) => (e.target.style.borderColor = errors.deskripsi ? "#ef4444" : "var(--border)")} />
         <div className="flex justify-between items-center mt-1">
           {errors.deskripsi ? <p className="text-xs text-red-500 flex items-center gap-1"><AlertCircle size={11} />{errors.deskripsi}</p> : <span />}
           <p className="text-xs text-slate-400">{form.deskripsi.length} karakter</p>
@@ -419,8 +419,8 @@ function FeedbackForm({ onSubmit }: { onSubmit: (data: { kategori: string; judul
         {!preview ? (
           <button type="button" onClick={() => fileRef.current?.click()}
             className="w-full flex flex-col items-center justify-center gap-2 py-5 rounded border-2 border-dashed transition-all hover:border-teal-400 hover:bg-teal-50"
-            style={{ borderColor: "#e2e8f0" }}>
-            <div className="w-10 h-10 rounded flex items-center justify-center" style={{ backgroundColor: "#f1f5f9" }}>
+            style={{ borderColor: "var(--border)" }}>
+            <div className="w-10 h-10 rounded flex items-center justify-center" style={{ backgroundColor: "var(--bg-muted)" }}>
               <ImageIcon size={20} className="text-slate-400" />
             </div>
             <div className="text-center">
@@ -550,9 +550,9 @@ export default function FeedbackPage() {
   }, [feedbacks, filterStatus, filterKategori, search]);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f8f7f4" }}>
+    <div className="min-h-screen flex flex-col surface-page">
       {/* Header */}
-      <header className="relative overflow-hidden noise-bg" style={{ backgroundColor: "#0f1b2d" }}>
+      <header className="on-dark relative overflow-hidden noise-bg" style={{ backgroundColor: "#0f1b2d" }}>
         <div className="absolute inset-0 opacity-10" style={{
           background: "radial-gradient(ellipse 80% 50% at 20% 40%, #0d9488, transparent), radial-gradient(ellipse 60% 40% at 80% 20%, #f59e0b, transparent)",
         }} />
@@ -579,7 +579,6 @@ export default function FeedbackPage() {
                   <span className="text-xs text-slate-500">({user.nim})</span>
                 </div>
               )}
-              <ThemeToggle className="text-slate-500" />
             <NotificationBell />
               <button onClick={handleLogout}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-all hover:opacity-80"
@@ -616,13 +615,13 @@ export default function FeedbackPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Form */}
           <aside className="lg:col-span-2">
             <div className="sticky top-6">
               <div className="bg-white rounded border border-slate-100 shadow-sm overflow-hidden">
-                <div className="px-5 py-4 border-b border-slate-100" style={{ backgroundColor: "#f8f7f4" }}>
+                <div className="px-5 py-4 border-b border-slate-100" style={{ backgroundColor: "var(--bg-muted)" }}>
                   <h2 className="text-xl text-slate-800">Buat Aduan Baru</h2>
                   <p className="text-xs text-slate-400 mt-0.5">Isi form di bawah dengan lengkap dan jujur</p>
                 </div>
@@ -682,7 +681,7 @@ export default function FeedbackPage() {
                     className="px-3 py-1.5 rounded text-xs font-semibold whitespace-nowrap transition-all"
                     style={filterStatus === s
                       ? { backgroundColor: "#0f1b2d", color: "white" }
-                      : { backgroundColor: "white", color: "#64748b", border: "1px solid #e2e8f0" }}>
+                      : { backgroundColor: "var(--bg-muted)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
                     {s === "semua" ? "Semua" : STATUS_CONFIG[s as StatusType].label}
                     {s !== "semua" && <span className="ml-1.5 opacity-70">({feedbacks.filter((f) => f.status === s).length})</span>}
                   </button>
@@ -708,13 +707,13 @@ export default function FeedbackPage() {
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => setFilterKategori("semua")}
                     className="px-3 py-1.5 rounded text-xs font-medium transition-all"
-                    style={filterKategori === "semua" ? { backgroundColor: "#0f1b2d", color: "white" } : { backgroundColor: "#f1f5f9", color: "#64748b" }}>
+                    style={filterKategori === "semua" ? { backgroundColor: "#0d9488", color: "white" } : { backgroundColor: "var(--bg-muted)", color: "var(--text-muted)" }}>
                     Semua
                   </button>
                   {KATEGORI_LIST.map((kat) => (
                     <button key={kat.value} onClick={() => setFilterKategori(kat.value)}
                       className="px-3 py-1.5 rounded text-xs font-medium transition-all"
-                      style={filterKategori === kat.value ? { backgroundColor: kat.color, color: "white" } : { backgroundColor: "#f1f5f9", color: "#64748b" }}>
+                      style={filterKategori === kat.value ? { backgroundColor: kat.color, color: "white" } : { backgroundColor: "var(--bg-muted)", color: "var(--text-muted)" }}>
                       {kat.label}
                     </button>))}
                 </div>
@@ -816,6 +815,8 @@ export default function FeedbackPage() {
           </div>
         </div>
       )}
+
+      <Footer />
     </div>
   );
 }

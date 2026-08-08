@@ -6,6 +6,37 @@ import cloudinary from "@/lib/cloudinary";
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
+/**
+ * Cek signature (magic bytes) file. `file.type` dikirim oleh klien
+ * sehingga mudah dipalsukan — isi file harus diverifikasi sendiri.
+ */
+function detectImageType(buf: Buffer): "image/jpeg" | "image/png" | "image/webp" | null {
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    buf.length >= 8 &&
+    buf[0] === 0x89 &&
+    buf[1] === 0x50 &&
+    buf[2] === 0x4e &&
+    buf[3] === 0x47 &&
+    buf[4] === 0x0d &&
+    buf[5] === 0x0a &&
+    buf[6] === 0x1a &&
+    buf[7] === 0x0a
+  ) {
+    return "image/png";
+  }
+  if (
+    buf.length >= 12 &&
+    buf.toString("ascii", 0, 4) === "RIFF" &&
+    buf.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return "image/webp";
+  }
+  return null;
+}
+
 export async function POST(req: Request) {
   try {
     // Cek auth: boleh mahasiswa (lampiran aduan) ATAU admin (lampiran balasan/tindak lanjut)
@@ -32,6 +63,15 @@ export async function POST(req: Request) {
     // Convert file ke buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    // Verifikasi isi file, bukan sekadar Content-Type dari klien
+    const realType = detectImageType(buffer);
+    if (!realType || !ALLOWED_TYPES.includes(realType)) {
+      return NextResponse.json(
+        { error: "File bukan gambar JPG, PNG, atau WebP yang valid" },
+        { status: 400 }
+      );
+    }
 
     // Pastikan kredensial Cloudinary tersedia di runtime.
     // Penyebab umum 500: env CLOUDINARY_* tidak ter-load (mis. menjalankan

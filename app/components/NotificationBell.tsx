@@ -132,13 +132,13 @@ export default function NotificationBell() {
           style={{
             top: dropdownPos.top,
             right: dropdownPos.right,
-            backgroundColor: "white",
-            border: "1px solid #e2e8f0",
+            backgroundColor: "var(--bg-elevated)",
+            border: "1px solid var(--border)",
             boxShadow: "0 20px 60px rgba(15,27,45,0.15)",
           }}
         >
           {/* Header */}
-          <div className="px-4 py-3 flex items-center justify-between"
+          <div className="on-dark px-4 py-3 flex items-center justify-between"
             style={{ backgroundColor: "#0f1b2d" }}>
             <div className="flex items-center gap-2">
               <Bell size={14} className="text-teal-400" />
@@ -171,10 +171,10 @@ export default function NotificationBell() {
                   return (
                     <div key={n.id}
                       className="px-4 py-3 flex items-start gap-3 group transition-colors hover:bg-slate-50 relative"
-                      style={{ backgroundColor: isRead ? "white" : isDiterima ? "#f0fdf4" : "#fff5f5" }}>
+                      style={{ backgroundColor: isRead ? "var(--bg-elevated)" : isDiterima ? "var(--status-green-bg)" : "var(--status-red-bg)" }}>
                       {/* Icon status */}
                       <div className="shrink-0 w-8 h-8 rounded flex items-center justify-center mt-0.5"
-                        style={{ backgroundColor: isDiterima ? "#d1fae5" : "#fee2e2" }}>
+                        style={{ backgroundColor: isDiterima ? "var(--status-green-bg)" : "var(--status-red-bg)" }}>
                         {isDiterima
                           ? <CheckCircle2 size={16} className="text-emerald-600" />
                           : <XCircle size={16} className="text-red-500" />
@@ -219,7 +219,7 @@ export default function NotificationBell() {
           {/* Footer */}
           {notifs.length > 0 && (
             <div className="px-4 py-2.5 border-t border-slate-100"
-              style={{ backgroundColor: "#f8f7f4" }}>
+              style={{ backgroundColor: "var(--bg-muted)" }}>
               <button
                 onClick={() => {
                   setNotifs([]);

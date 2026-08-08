@@ -46,7 +46,7 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+      className="on-dark min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{ backgroundColor: "#0f1b2d" }}
     >
       {/* Background glow */}
@@ -71,7 +71,7 @@ export default function LoginPage() {
       <div className="relative w-full max-w-sm">
         {/* Card */}
         <div
-          className="rounded-2xl overflow-hidden shadow-2xl"
+          className="rounded overflow-hidden shadow-2xl"
           style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
         >
           {/* Header */}

@@ -48,7 +48,7 @@ const PIE_COLORS = ["#f59e0b", "#10b981", "#ef4444", "#166534"];
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded shadow-lg p-3 text-xs" style={{ backgroundColor: "#0f1b2d", border: "1px solid rgba(255,255,255,0.1)" }}>
+    <div className="on-dark rounded shadow-lg p-3 text-xs" style={{ backgroundColor: "#0f1b2d", border: "1px solid rgba(255,255,255,0.1)" }}>
       <p className="font-semibold text-white mb-2">{label}</p>
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2 mb-1">
@@ -123,9 +123,9 @@ export default function DashboardPage() {
   })) ?? [];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f0f2f5" }}>
+    <div className="min-h-screen surface-page">
       {/* Header */}
-      <header style={{ backgroundColor: "#0f1b2d" }} className="px-6 py-4 relative">
+      <header style={{ backgroundColor: "#0f1b2d" }} className="on-dark px-6 py-4 relative">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ export default function DashboardPage() {
 
         {/* Mobile dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 right-0 z-50 animate-fade-up"
+          <div className="on-dark md:hidden absolute top-full left-0 right-0 z-50 animate-fade-up"
             style={{ backgroundColor: "#0f1b2d", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
             <div className="max-w-7xl mx-auto px-6 py-3 space-y-1">
               <NavLink href="/admin" exact onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2.5 rounded text-sm text-slate-400 hover:text-white hover:bg-white/5 transition-all" activeClassName="!text-white bg-white/5">

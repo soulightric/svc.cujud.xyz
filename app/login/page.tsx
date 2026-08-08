@@ -39,7 +39,7 @@ export default function LoginMahasiswaPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
+    <div className="on-dark min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
       style={{ backgroundColor: "#0f172a" }}>
       {/* Background */}
       <div className="absolute inset-0 opacity-15" style={{
@@ -66,7 +66,7 @@ export default function LoginMahasiswaPage() {
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl overflow-hidden shadow-2xl"
+        <div className="rounded overflow-hidden shadow-2xl"
           style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="p-7">
             <form onSubmit={handleSubmit} className="space-y-4">

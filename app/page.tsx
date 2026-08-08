@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from 'next/link';
-import ThemeToggle from "@/app/components/ThemeToggle";
-import { BUILD_MANIFEST } from "next/dist/shared/lib/constants";
+import Footer from "@/app/components/Footer";
+import { useTheme } from "@/app/components/ThemeProvider";
 
 interface Stats {
   total: number;
@@ -20,6 +20,7 @@ interface Stats {
 }
 
 export default function HomePage() {
+  const { theme } = useTheme();
   const [stats, setStats] = useState<Stats>({ total: 0, menunggu: 0, diterima: 0, ditolak: 0, selesai: 0 });
   const [loading, setLoading] = useState(true);
   const [count, setCount] = useState({ total: 0, menunggu: 0, diterima: 0, ditolak: 0, selesai: 0 });
@@ -90,48 +91,24 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, [loading, stats]);
 
-  useEffect(() => {
-    fetch("/api/stats")
-      .then((r) => r.json())
-      .then((data) => { setStats(data); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
-
-  // Animasi counter
-  useEffect(() => {
-    if (loading) return;
-    const duration = 1200;
-    const steps = 40;
-    const interval = duration / steps;
-    let step = 0;
-    const timer = setInterval(() => {
-      step++;
-      const progress = step / steps;
-      const ease = 1 - Math.pow(1 - progress, 3);
-      setCount({
-        total:    Math.round(stats.total    * ease),
-        menunggu: Math.round(stats.menunggu * ease),
-        diterima: Math.round(stats.diterima * ease),
-        ditolak:  Math.round(stats.ditolak  * ease),
-        selesai:  Math.round(stats.selesai  * ease),
-      });
-      if (step >= steps) clearInterval(timer);
-    }, interval);
-    return () => clearInterval(timer);
-  }, [loading, stats]);
-
+  const isDark = theme === "dark";
   const statCards = [
-    { label: "Total Aduan",  value: count.total,    color: "#0d9488", bg: "#f0fdfa", border: "#99f6e4", icon: TrendingUp },
-    { label: "Menunggu",     value: count.menunggu, color: "#b45309", bg: "#fef3c7", border: "#fcd34d", icon: Clock3 },
-    { label: "Diterima",     value: count.diterima, color: "#04355e", bg: "#d1fae5", border: "#6ee7b7", icon: CheckCircle2 },
-    { label: "Ditolak",      value: count.ditolak,  color: "#991b1b", bg: "#fee2e2", border: "#fca5a5", icon: XCircle },
-    { label: "Selesai",      value: count.selesai,  color: "#166534", bg: "#dcfce7", border: "#86efac", icon: CheckCheck },
+    { label: "Total Aduan",  value: count.total,    icon: TrendingUp,
+      ...(isDark ? { color: "#5eead4", bg: "#062c2b", border: "#115e59" } : { color: "#0d9488", bg: "#f0fdfa", border: "#99f6e4" }) },
+    { label: "Menunggu",     value: count.menunggu, icon: Clock3,
+      ...(isDark ? { color: "#fcd34d", bg: "#422006", border: "#854d0e" } : { color: "#b45309", bg: "#fef3c7", border: "#fcd34d" }) },
+    { label: "Diterima",     value: count.diterima, icon: CheckCircle2,
+      ...(isDark ? { color: "#93c5fd", bg: "#0f213f", border: "#1e3a8a" } : { color: "#04355e", bg: "#d1fae5", border: "#6ee7b7" }) },
+    { label: "Ditolak",      value: count.ditolak,  icon: XCircle,
+      ...(isDark ? { color: "#fca5a5", bg: "#450a0a", border: "#7f1d1d" } : { color: "#991b1b", bg: "#fee2e2", border: "#fca5a5" }) },
+    { label: "Selesai",      value: count.selesai,  icon: CheckCheck,
+      ...(isDark ? { color: "#6ee7b7", bg: "#052e1c", border: "#065f46" } : { color: "#166534", bg: "#dcfce7", border: "#86efac" }) },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#f8f7f4" }}>
+    <div className="min-h-screen flex flex-col surface-page">
       {/* ── Header (transparent blur / glassmorphism) ── */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-white/10" style={{ backgroundColor: "rgba(15,27,45,0.45)" }}>
+      <header className="on-dark fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b border-white/10" style={{ backgroundColor: "rgba(15,27,45,0.45)" }}>
         <div className="relative max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded overflow-hidden shrink-0 flex items-center justify-center" style={{ backgroundColor: "transparent" }}>
@@ -156,7 +133,6 @@ export default function HomePage() {
                 {link.label}
               </a>
             ))}
-            <ThemeToggle />
             <Link
               href="/login"
               className="inline-flex items-center gap-2 px-4 py-2 rounded font-semibold text-sm transition-all hover:opacity-90"
@@ -179,7 +155,7 @@ export default function HomePage() {
 
         {/* Menu Mobile (dropdown) */}
         {menuOpen && (
-          <div className="md:hidden border-t border-white/10 backdrop-blur-md" style={{ backgroundColor: "rgba(15,27,45,0.85)" }}>
+          <div className="on-dark md:hidden border-t border-white/10 backdrop-blur-md" style={{ backgroundColor: "rgba(15,27,45,0.85)" }}>
             <nav className="max-w-5xl mx-auto px-6 py-4 flex flex-col gap-1">
               {navLinks.map((link) => (
                 <a
@@ -207,7 +183,7 @@ export default function HomePage() {
 
       {/* ── Hero ── */}
       <main className="flex-1">
-        <section className="relative overflow-hidden noise-bg pb-16 pt-32" style={{ backgroundColor: "#0f1b2d" }}>
+        <section className="on-dark relative overflow-hidden noise-bg pb-16 pt-32" style={{ backgroundColor: "#0f1b2d" }}>
           {/* Background Image Slider */}
           <div className="absolute inset-0 z-0">
             {heroImages.map((image, index) => (
@@ -271,8 +247,8 @@ export default function HomePage() {
         {/* ── How it works ── */}
         <section className="max-w-5xl mx-auto px-6 mb-16">
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-semibold tracking-tight text-slate-800 mb-2">Cara Kerja</h3>
-            <p className="text-sm text-slate-400">Tiga langkah mudah untuk menyampaikan aduan</p>
+            <h3 className="text-2xl font-semibold tracking-tight mb-2" style={{ color: "var(--text)" }}>Cara Kerja</h3>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Tiga langkah mudah untuk menyampaikan aduan</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -280,13 +256,17 @@ export default function HomePage() {
               { step: "02", title: "Kirim Aduan", desc: "Pilih kategori fasilitas, jelaskan masalah secara detail agar mudah ditindaklanjuti.", color: "#0d9488" },
               { step: "03", title: "Pantau Status",desc: "Lihat status aduan Anda: menunggu, diterima, atau ditolak beserta balasan resmi.",    color: "#f59e0b" },
             ].map(({ step, title, desc, color }) => (
-              <div key={step} className="bg-white rounded p-6 border border-slate-100 shadow-sm">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 text-lg font-semibold"
-                  style={{ backgroundColor: color + "15", color }}>
+              <div
+                key={step}
+                className="rounded p-6 border shadow-sm"
+                style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)" }}
+              >
+                <div className="w-10 h-10 rounded flex items-center justify-center mb-4 text-lg font-semibold"
+                  style={{ backgroundColor: color + "26", color }}>
                   {step}
                 </div>
-                <h4 className="font-semibold text-slate-800 mb-2">{title}</h4>
-                <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
+                <h4 className="font-semibold mb-2" style={{ color: "var(--text)" }}>{title}</h4>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{desc}</p>
               </div>
             ))}
           </div>
@@ -294,7 +274,7 @@ export default function HomePage() {
 
         {/* ── CTA ── */}
         <section className="max-w-5xl mx-auto px-6 mb-16">
-          <div className="rounded p-8 text-center relative overflow-hidden noise-bg"
+          <div className="on-dark rounded p-8 text-center relative overflow-hidden noise-bg"
             style={{ backgroundColor: "#0f1b2d" }}>
             <div className="absolute inset-0 opacity-20" style={{
               background: "radial-gradient(ellipse 60% 60% at 50% 50%, #0d9488, transparent)",
@@ -319,13 +299,7 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-slate-200">
-        <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-slate-400">© 2026 SVC - Student Voice Campus backup by <Link className="text-emerald-500" href="https://www.etherthink.xyz/" target="_blank" rel="noopener noreferrer">Etherthink</Link></p>
-          <p className="text-xs text-slate-400">Aduan bersifat rahasia dan diproses dalam 3–5 hari kerja</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

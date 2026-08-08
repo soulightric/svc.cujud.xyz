@@ -1,27 +1,57 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
-import { useTheme } from "./ThemeProvider";
+import { Monitor, Moon, Sun } from "lucide-react";
+import { useTheme, type ThemeMode } from "./ThemeProvider";
+
+const OPTIONS: { value: ThemeMode; label: string; Icon: typeof Sun }[] = [
+  { value: "light", label: "Terang", Icon: Sun },
+  { value: "dark", label: "Gelap", Icon: Moon },
+  { value: "system", label: "Sistem", Icon: Monitor },
+];
 
 export default function ThemeToggle({
   className = "",
-  size = 16,
+  size = 15,
+  showLabel = false,
 }: {
   className?: string;
   size?: number;
+  /** Tampilkan teks label di samping ikon (dipakai di footer) */
+  showLabel?: boolean;
 }) {
-  const { theme, toggle } = useTheme();
-  const isDark = theme === "dark";
+  const { mode, setMode, mounted } = useTheme();
 
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      title={isDark ? "Mode terang" : "Mode gelap"}
-      aria-label={isDark ? "Mode terang" : "Mode gelap"}
-      className={`inline-flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-white/10 ${className}`}
+    <div
+      role="radiogroup"
+      aria-label="Pilih tema tampilan"
+      className={`inline-flex items-center gap-0.5 rounded border p-0.5 ${className}`}
+      style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-muted)" }}
     >
-      {isDark ? <Sun size={size} className="text-amber-300" /> : <Moon size={size} className="text-slate-300" />}
-    </button>
+      {OPTIONS.map(({ value, label, Icon }) => {
+        const active = mounted && mode === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            aria-label={`Tema ${label}`}
+            title={`Tema ${label}`}
+            onClick={() => setMode(value)}
+            className={`inline-flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium transition-colors ${
+              active ? "shadow-sm" : "opacity-70 hover:opacity-100"
+            }`}
+            style={{
+              backgroundColor: active ? "var(--bg-elevated)" : "transparent",
+              color: active ? "var(--teal)" : "var(--text-muted)",
+            }}
+          >
+            <Icon size={size} />
+            {showLabel && <span>{label}</span>}
+          </button>
+        );
+      })}
+    </div>
   );
 }

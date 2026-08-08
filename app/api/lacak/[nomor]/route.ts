@@ -1,19 +1,35 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+
+/** Format nomor tiket resmi: ADU-2026-0001 */
+const TICKET_PATTERN = /^ADU-\d{4}-\d{4}$/;
 
 /**
  * Public endpoint — lacak aduan by nomor tiket tanpa login.
  * Tidak mengekspos NIM/nama lengkap secara berlebihan; hanya inisial + status.
+ *
+ * Nomor tiket berurutan sehingga mudah ditebak. Endpoint ini dibatasi
+ * rate limit agar tidak bisa dipakai memanen data aduan secara massal.
  */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ nomor: string }> }
 ) {
   try {
+    const ip = getClientIp(req);
+    const rl = rateLimit(`lacak:${ip}`, 20, 5 * 60 * 1000);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: `Terlalu banyak permintaan. Coba lagi dalam ${rl.retryAfterSec} detik.` },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      );
+    }
+
     const { nomor } = await params;
     const cleaned = decodeURIComponent(nomor).trim().toUpperCase();
 
-    if (!cleaned || cleaned.length < 8) {
+    if (!TICKET_PATTERN.test(cleaned)) {
       return NextResponse.json({ error: "Nomor tiket tidak valid" }, { status: 400 });
     }
 

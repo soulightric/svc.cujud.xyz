@@ -13,7 +13,12 @@ import {
   CalendarDays,
   User,
   Tag,
+  AlertCircle,
+  Paperclip,
+  ShieldCheck,
 } from "lucide-react";
+import Footer from "@/app/components/Footer";
+import { useTheme } from "@/app/components/ThemeProvider";
 
 type StatusType = "menunggu" | "diterima" | "ditolak" | "selesai";
 
@@ -38,39 +43,35 @@ interface TrackData {
   }[];
 }
 
-const STATUS_CFG: Record<
-  StatusType,
-  { label: string; color: string; bg: string; border: string; Icon: typeof Clock3 }
-> = {
-  menunggu: {
-    label: "Menunggu",
-    color: "#92400e",
-    bg: "#fef3c7",
-    border: "#fcd34d",
-    Icon: Clock3,
-  },
-  diterima: {
-    label: "Diterima",
-    color: "#1e40af",
-    bg: "#dbeafe",
-    border: "#93c5fd",
-    Icon: CheckCircle2,
-  },
-  ditolak: {
-    label: "Ditolak",
-    color: "#991b1b",
-    bg: "#fee2e2",
-    border: "#fca5a5",
-    Icon: XCircle,
-  },
-  selesai: {
-    label: "Selesai",
-    color: "#065f46",
-    bg: "#d1fae5",
-    border: "#6ee7b7",
-    Icon: CheckCheck,
-  },
+interface StatusStyle {
+  color: string;
+  bg: string;
+  border: string;
+}
+
+const STATUS_META: Record<StatusType, { label: string; Icon: typeof Clock3 }> = {
+  menunggu: { label: "Menunggu", Icon: Clock3 },
+  diterima: { label: "Diterima", Icon: CheckCircle2 },
+  ditolak: { label: "Ditolak", Icon: XCircle },
+  selesai: { label: "Selesai", Icon: CheckCheck },
 };
+
+const STATUS_LIGHT: Record<StatusType, StatusStyle> = {
+  menunggu: { color: "#92400e", bg: "#fef3c7", border: "#fcd34d" },
+  diterima: { color: "#1e40af", bg: "#dbeafe", border: "#93c5fd" },
+  ditolak: { color: "#991b1b", bg: "#fee2e2", border: "#fca5a5" },
+  selesai: { color: "#065f46", bg: "#d1fae5", border: "#6ee7b7" },
+};
+
+const STATUS_DARK: Record<StatusType, StatusStyle> = {
+  menunggu: { color: "#fcd34d", bg: "#422006", border: "#854d0e" },
+  diterima: { color: "#93c5fd", bg: "#0f213f", border: "#1e3a8a" },
+  ditolak: { color: "#fca5a5", bg: "#450a0a", border: "#7f1d1d" },
+  selesai: { color: "#6ee7b7", bg: "#052e1c", border: "#065f46" },
+};
+
+/** Urutan tahapan untuk progress tracker */
+const FLOW: StatusType[] = ["menunggu", "diterima", "selesai"];
 
 export default function LacakDetailPage() {
   const params = useParams();
@@ -78,6 +79,8 @@ export default function LacakDetailPage() {
   const [data, setData] = useState<TrackData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { theme } = useTheme();
+  const statusMap = theme === "dark" ? STATUS_DARK : STATUS_LIGHT;
 
   useEffect(() => {
     if (!nomor) return;
@@ -95,158 +98,315 @@ export default function LacakDetailPage() {
       .finally(() => setLoading(false));
   }, [nomor]);
 
+  const cardStyle = {
+    backgroundColor: "var(--bg-elevated)",
+    borderColor: "var(--border)",
+    boxShadow: "0 1px 2px var(--shadow-color)",
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
+    <div className="min-h-screen flex flex-col surface-page">
+      <header
+        className="border-b sticky top-0 z-30"
+        style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-elevated)" }}
+      >
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/lacak"
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 text-sm"
+            className="inline-flex items-center gap-2 text-sm transition-opacity hover:opacity-80"
+            style={{ color: "var(--text-muted)" }}
           >
             <ArrowLeft size={16} /> Cari tiket lain
           </Link>
-          <Link href="/" className="text-sm text-slate-500 hover:text-slate-800">
+          <Link
+            href="/"
+            className="text-sm transition-opacity hover:opacity-80"
+            style={{ color: "var(--text-muted)" }}
+          >
             Beranda
           </Link>
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        {loading && (
-          <div className="text-center py-16 text-slate-500 text-sm">Memuat tiket…</div>
-        )}
+      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-8">
+        {loading && <DetailSkeleton />}
 
         {error && !loading && (
-          <div className="bg-white border border-red-200 rounded-xl p-8 text-center space-y-3">
-            <p className="text-red-700 font-medium">{error}</p>
-            <Link href="/lacak" className="text-sm text-blue-600 hover:underline">
+          <div
+            className="rounded border p-8 text-center space-y-3"
+            style={{
+              backgroundColor: "var(--danger-soft-bg)",
+              borderColor: "var(--danger-soft-border)",
+            }}
+          >
+            <AlertCircle size={28} className="mx-auto" style={{ color: "var(--danger)" }} />
+            <p className="font-semibold" style={{ color: "var(--danger)" }}>
+              {error}
+            </p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+              Pastikan nomor tiket sudah benar, termasuk tanda hubungnya.
+            </p>
+            <Link
+              href="/lacak"
+              className="inline-block text-sm font-medium hover:underline"
+              style={{ color: "var(--accent)" }}
+            >
               Kembali ke form lacak
             </Link>
           </div>
         )}
 
         {data && !loading && (
-          <div className="space-y-6">
-            <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+          <div className="space-y-5">
+            {/* Kartu utama */}
+            <section className="rounded border p-6 space-y-5" style={cardStyle}>
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-mono text-blue-600 font-semibold tracking-wide">
+                <div className="min-w-0">
+                  <p
+                    className="text-xs font-mono font-semibold tracking-wide"
+                    style={{ color: "var(--accent)" }}
+                  >
                     {data.nomorTiket}
                   </p>
-                  <h1 className="text-xl font-bold text-slate-900 mt-1">{data.judul}</h1>
+                  <h1
+                    className="text-xl font-bold mt-1 break-words"
+                    style={{ color: "var(--text)" }}
+                  >
+                    {data.judul}
+                  </h1>
                 </div>
-                <StatusBadge status={data.status} />
+                <StatusBadge status={data.status} styleMap={statusMap} />
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <Meta
-                  icon={User}
-                  label="Pelapor"
-                  value={data.pelapor}
-                />
-                <Meta
-                  icon={Tag}
-                  label="Kategori"
-                  value={data.kategori}
-                />
-                <Meta
-                  icon={CalendarDays}
-                  label="Dibuat"
-                  value={fmtDate(data.createdAt)}
-                />
-                <Meta
-                  icon={CalendarDays}
-                  label="Diperbarui"
-                  value={fmtDate(data.updatedAt)}
-                />
+              <ProgressTracker status={data.status} styleMap={statusMap} />
+
+              <div
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t"
+                style={{ borderColor: "var(--border)" }}
+              >
+                <Meta icon={User} label="Pelapor" value={data.pelapor} />
+                <Meta icon={Tag} label="Kategori" value={data.kategori} />
+                <Meta icon={CalendarDays} label="Dibuat" value={fmtDate(data.createdAt)} />
+                <Meta icon={CalendarDays} label="Diperbarui" value={fmtDate(data.updatedAt)} />
               </div>
 
               <div>
-                <p className="text-xs font-medium text-slate-500 mb-1">Deskripsi</p>
-                <p className="text-sm text-slate-700 whitespace-pre-wrap">{data.deskripsi}</p>
+                <p className="text-xs font-medium mb-1.5" style={{ color: "var(--text-muted)" }}>
+                  Deskripsi
+                </p>
+                <p
+                  className="text-sm whitespace-pre-wrap leading-relaxed"
+                  style={{ color: "var(--text)" }}
+                >
+                  {data.deskripsi}
+                </p>
               </div>
 
               {data.lampiran && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 mb-1">Lampiran</p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={data.lampiran}
-                    alt="Lampiran"
-                    className="rounded-lg border border-slate-200 max-h-64 object-cover"
-                  />
-                </div>
+                <Attachment label="Lampiran" src={data.lampiran} alt="Lampiran aduan" />
               )}
 
               {data.balasan && (
-                <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                  <p className="text-xs font-medium text-slate-500 mb-1">Balasan admin</p>
-                  <p className="text-sm text-slate-800 whitespace-pre-wrap">{data.balasan}</p>
+                <div
+                  className="rounded border p-4"
+                  style={{
+                    backgroundColor: "var(--bg-muted)",
+                    borderColor: "var(--border)",
+                  }}
+                >
+                  <p
+                    className="text-xs font-medium mb-1.5 inline-flex items-center gap-1.5"
+                    style={{ color: "var(--accent)" }}
+                  >
+                    <ShieldCheck size={13} /> Balasan admin
+                  </p>
+                  <p
+                    className="text-sm whitespace-pre-wrap leading-relaxed"
+                    style={{ color: "var(--text)" }}
+                  >
+                    {data.balasan}
+                  </p>
                 </div>
               )}
 
               {data.lampiranBalasan && (
-                <div>
-                  <p className="text-xs font-medium text-slate-500 mb-1">Bukti tindak lanjut</p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={data.lampiranBalasan}
-                    alt="Lampiran balasan"
-                    className="rounded-lg border border-slate-200 max-h-64 object-cover"
-                  />
-                </div>
+                <Attachment
+                  label="Bukti tindak lanjut"
+                  src={data.lampiranBalasan}
+                  alt="Lampiran balasan admin"
+                />
               )}
-            </div>
+            </section>
 
             {/* Thread komentar (read-only di halaman publik) */}
-            <div className="bg-white border border-slate-200 rounded-xl p-6">
-              <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2 mb-4">
+            <section className="rounded border p-6" style={cardStyle}>
+              <h2
+                className="text-sm font-semibold flex items-center gap-2 mb-4"
+                style={{ color: "var(--text)" }}
+              >
                 <MessageSquare size={16} /> Riwayat percakapan
-                <span className="text-slate-400 font-normal">({data.comments.length})</span>
+                <span className="font-normal" style={{ color: "var(--text-faint)" }}>
+                  ({data.comments.length})
+                </span>
               </h2>
+
               {data.comments.length === 0 ? (
-                <p className="text-sm text-slate-400">Belum ada komentar.</p>
+                <p
+                  className="text-sm text-center py-6 rounded border border-dashed"
+                  style={{ color: "var(--text-faint)", borderColor: "var(--border)" }}
+                >
+                  Belum ada komentar pada tiket ini.
+                </p>
               ) : (
                 <ul className="space-y-3">
                   {data.comments.map((c) => (
                     <li
                       key={c.id}
-                      className={`rounded-lg p-3 text-sm ${
-                        c.isAdmin
-                          ? "bg-blue-50 border border-blue-100"
-                          : "bg-slate-50 border border-slate-100"
-                      }`}
+                      className="rounded border p-3 text-sm"
+                      style={{
+                        backgroundColor: c.isAdmin
+                          ? "var(--info-soft-bg)"
+                          : "var(--bg-muted)",
+                        borderColor: c.isAdmin
+                          ? "var(--info-soft-border)"
+                          : "var(--border)",
+                      }}
                     >
-                      <div className="flex justify-between gap-2 mb-1">
-                        <span className="font-medium text-slate-700 text-xs">{c.dari}</span>
-                        <span className="text-[11px] text-slate-400">
+                      <div className="flex flex-wrap justify-between gap-2 mb-1.5">
+                        <span
+                          className="font-semibold text-xs inline-flex items-center gap-1.5"
+                          style={{ color: c.isAdmin ? "var(--info)" : "var(--text-muted)" }}
+                        >
+                          {c.isAdmin && <ShieldCheck size={12} />}
+                          {c.dari}
+                        </span>
+                        <span className="text-[11px]" style={{ color: "var(--text-faint)" }}>
                           {fmtDate(c.createdAt)}
                         </span>
                       </div>
-                      <p className="text-slate-800 whitespace-pre-wrap">{c.isi}</p>
+                      <p
+                        className="whitespace-pre-wrap leading-relaxed"
+                        style={{ color: "var(--text)" }}
+                      >
+                        {c.isi}
+                      </p>
                     </li>
                   ))}
                 </ul>
               )}
-            </div>
+            </section>
           </div>
         )}
       </main>
+
+      <Footer />
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: StatusType }) {
-  const cfg = STATUS_CFG[status] || STATUS_CFG.menunggu;
-  const Icon = cfg.Icon;
+function StatusBadge({
+  status,
+  styleMap,
+}: {
+  status: StatusType;
+  styleMap: Record<StatusType, StatusStyle>;
+}) {
+  const cfg = styleMap[status] || styleMap.menunggu;
+  const { label, Icon } = STATUS_META[status] || STATUS_META.menunggu;
   return (
     <span
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold shrink-0"
       style={{ backgroundColor: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}` }}
     >
       <Icon size={12} />
-      {cfg.label}
+      {label}
     </span>
+  );
+}
+
+function ProgressTracker({
+  status,
+  styleMap,
+}: {
+  status: StatusType;
+  styleMap: Record<StatusType, StatusStyle>;
+}) {
+  // Tiket ditolak tidak mengikuti alur normal
+  if (status === "ditolak") {
+    const cfg = styleMap.ditolak;
+    return (
+      <div
+        className="rounded border px-4 py-3 text-xs font-medium inline-flex items-center gap-2 w-full"
+        style={{ backgroundColor: cfg.bg, borderColor: cfg.border, color: cfg.color }}
+      >
+        <XCircle size={14} />
+        Aduan ditolak — silakan cek balasan admin di bawah.
+      </div>
+    );
+  }
+
+  const activeIndex = FLOW.indexOf(status);
+
+  return (
+    <div className="flex items-center">
+      {FLOW.map((step, i) => {
+        const done = i <= activeIndex;
+        const cfg = styleMap[step];
+        const { label, Icon } = STATUS_META[step];
+        return (
+          <div key={step} className="flex items-center flex-1 last:flex-none">
+            <div className="flex flex-col items-center gap-1.5">
+              <div
+                className="w-8 h-8 rounded flex items-center justify-center border transition-colors"
+                style={{
+                  backgroundColor: done ? cfg.bg : "var(--bg-muted)",
+                  borderColor: done ? cfg.border : "var(--border)",
+                  color: done ? cfg.color : "var(--text-faint)",
+                }}
+              >
+                <Icon size={14} />
+              </div>
+              <span
+                className="text-[10px] font-medium whitespace-nowrap"
+                style={{ color: done ? "var(--text)" : "var(--text-faint)" }}
+              >
+                {label}
+              </span>
+            </div>
+            {i < FLOW.length - 1 && (
+              <div
+                className="h-0.5 flex-1 mx-1 mb-5 rounded"
+                style={{
+                  backgroundColor: i < activeIndex ? cfg.border : "var(--border)",
+                }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Attachment({ label, src, alt }: { label: string; src: string; alt: string }) {
+  return (
+    <div>
+      <p
+        className="text-xs font-medium mb-1.5 inline-flex items-center gap-1.5"
+        style={{ color: "var(--text-muted)" }}
+      >
+        <Paperclip size={13} /> {label}
+      </p>
+      <a href={src} target="_blank" rel="noopener noreferrer" className="block">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt}
+          className="rounded border max-h-64 w-auto object-cover transition-opacity hover:opacity-90"
+          style={{ borderColor: "var(--border)" }}
+        />
+      </a>
+    </div>
   );
 }
 
@@ -261,10 +421,46 @@ function Meta({
 }) {
   return (
     <div className="flex items-start gap-2">
-      <Icon size={14} className="text-slate-400 mt-0.5 shrink-0" />
-      <div>
-        <p className="text-[11px] text-slate-400">{label}</p>
-        <p className="text-sm text-slate-700 capitalize">{value}</p>
+      <Icon size={14} className="mt-0.5 shrink-0" style={{ color: "var(--text-faint)" }} />
+      <div className="min-w-0">
+        <p className="text-[11px]" style={{ color: "var(--text-faint)" }}>
+          {label}
+        </p>
+        <p className="text-sm capitalize break-words" style={{ color: "var(--text)" }}>
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="space-y-5 animate-pulse">
+      <div
+        className="rounded border p-6 space-y-4"
+        style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)" }}
+      >
+        <div className="h-3 w-32 rounded" style={{ backgroundColor: "var(--bg-muted)" }} />
+        <div className="h-6 w-3/4 rounded" style={{ backgroundColor: "var(--bg-muted)" }} />
+        <div className="h-10 w-full rounded" style={{ backgroundColor: "var(--bg-muted)" }} />
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-9 rounded"
+              style={{ backgroundColor: "var(--bg-muted)" }}
+            />
+          ))}
+        </div>
+        <div className="h-16 w-full rounded" style={{ backgroundColor: "var(--bg-muted)" }} />
+      </div>
+      <div
+        className="rounded border p-6 space-y-3"
+        style={{ backgroundColor: "var(--bg-elevated)", borderColor: "var(--border)" }}
+      >
+        <div className="h-4 w-40 rounded" style={{ backgroundColor: "var(--bg-muted)" }} />
+        <div className="h-14 w-full rounded" style={{ backgroundColor: "var(--bg-muted)" }} />
       </div>
     </div>
   );
